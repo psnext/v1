@@ -27,12 +27,19 @@
     ]
   },
   "projects": {
-    "apps": {
+    "api": {
       "tags": []
     },
-    "apps-e2e": {
+    "data": {
       "tags": [],
-      "implicitDependencies": ["apps"]
+      "implicitDependencies": ["api"]
+    },
+    "data-e2e": {
+      "tags": [],
+      "implicitDependencies": ["data"]
+    },
+    "sharedui": {
+      "tags": []
     }
   }
 }

@@ -1,22 +1,73 @@
 {
   "version": 2,
   "projects": {
-    "apps": {
-      "root": "apps/apps",
-      "sourceRoot": "apps/apps/src",
+    "api": {
+      "root": "apps/api",
+      "sourceRoot": "apps/api/src",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/api",
+            "main": "apps/api/src/main.ts",
+            "tsConfig": "apps/api/tsconfig.app.json",
+            "assets": ["apps/api/src/assets"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/api/src/environments/environment.ts",
+                  "with": "apps/api/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/node:execute",
+          "options": {
+            "buildTarget": "api:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/api/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/api"],
+          "options": {
+            "jestConfig": "apps/api/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "data": {
+      "root": "apps/data",
+      "sourceRoot": "apps/data/src",
       "projectType": "application",
       "targets": {
         "build": {
           "executor": "@nrwl/web:build",
           "outputs": ["{options.outputPath}"],
           "options": {
-            "outputPath": "dist/apps/apps",
-            "index": "apps/apps/src/index.html",
-            "main": "apps/apps/src/main.tsx",
-            "polyfills": "apps/apps/src/polyfills.ts",
-            "tsConfig": "apps/apps/tsconfig.app.json",
-            "assets": ["apps/apps/src/favicon.ico", "apps/apps/src/assets"],
-            "styles": ["apps/apps/src/styles.css"],
+            "outputPath": "dist/apps/data",
+            "index": "apps/data/src/index.html",
+            "main": "apps/data/src/main.tsx",
+            "polyfills": "apps/data/src/polyfills.ts",
+            "tsConfig": "apps/data/tsconfig.app.json",
+            "assets": ["apps/data/src/favicon.ico", "apps/data/src/assets"],
+            "styles": ["apps/data/src/styles.scss"],
             "scripts": [],
             "webpackConfig": "@nrwl/react/plugins/webpack"
           },
@@ -24,8 +75,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "apps/apps/src/environments/environment.ts",
-                  "with": "apps/apps/src/environments/environment.prod.ts"
+                  "replace": "apps/data/src/environments/environment.ts",
+                  "with": "apps/data/src/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
@@ -48,12 +99,13 @@
         "serve": {
           "executor": "@nrwl/web:dev-server",
           "options": {
-            "buildTarget": "apps:build",
-            "hmr": true
+            "buildTarget": "data:build",
+            "hmr": true,
+            "proxyConfig": "apps/data/proxy.conf.json"
           },
           "configurations": {
             "production": {
-              "buildTarget": "apps:build:production",
+              "buildTarget": "data:build:production",
               "hmr": false
             }
           }
@@ -62,34 +114,39 @@
           "executor": "@nrwl/linter:eslint",
           "outputs": ["{options.outputFile}"],
           "options": {
-            "lintFilePatterns": ["apps/apps/**/*.{ts,tsx,js,jsx}"]
+            "lintFilePatterns": ["apps/data/**/*.{ts,tsx,js,jsx}"]
           }
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/apps/apps"],
+          "outputs": ["coverage/apps/data"],
           "options": {
-            "jestConfig": "apps/apps/jest.config.js",
+            "jestConfig": "apps/data/jest.config.js",
             "passWithNoTests": true
+          }
+        },
+        "build-docker":{
+          "executor":"@nrwl/workspace:run-commands",
+          "options": {
+              "command": "Docker build -f apps/data/Dockerfile -t psni_data ."
           }
         }
       }
     },
-    "apps-e2e": {
-      "root": "apps/apps-e2e",
-      "sourceRoot": "apps/apps-e2e/src",
+    "data-e2e": {
+      "root": "apps/data-e2e",
+      "sourceRoot": "apps/data-e2e/src",
       "projectType": "application",
       "targets": {
         "e2e": {
           "executor": "@nrwl/cypress:cypress",
           "options": {
-            "cypressConfig": "apps/apps-e2e/cypress.json",
-            "devServerTarget": "apps:serve",
-            "tsConfig": "apps/apps-e2e/tsconfig.json"
+            "cypressConfig": "apps/data-e2e/cypress.json",
+            "devServerTarget": "data:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "apps:serve:production"
+              "devServerTarget": "data:serve:production"
             }
           }
         },
@@ -97,7 +154,29 @@
           "executor": "@nrwl/linter:eslint",
           "outputs": ["{options.outputFile}"],
           "options": {
-            "lintFilePatterns": ["apps/apps-e2e/**/*.{js,ts}"]
+            "lintFilePatterns": ["apps/data-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    },
+    "sharedui": {
+      "root": "libs/sharedui",
+      "sourceRoot": "libs/sharedui/src",
+      "projectType": "library",
+      "targets": {
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["libs/sharedui/**/*.{ts,tsx,js,jsx}"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/sharedui"],
+          "options": {
+            "jestConfig": "libs/sharedui/jest.config.js",
+            "passWithNoTests": true
           }
         }
       }
@@ -122,5 +201,5 @@
       }
     }
   },
-  "defaultProject": "apps"
+  "defaultProject": "api"
 }
