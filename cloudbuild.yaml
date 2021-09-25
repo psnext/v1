@@ -1,7 +1,7 @@
 steps:
 # step 0 store build info
 - id: "Store Values"
-  name: 'gcr.io/kaniko-project/executor:latest'
+  name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
   entrypoint: bash
   args:
     - -c
