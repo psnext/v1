@@ -1,7 +1,7 @@
 steps:
 # step 0 store build info
 - id: "Store Values"
-  name: ubuntu
+  name: 'gcr.io/kaniko-project/executor:latest'
   entrypoint: bash
   args:
     - -c
