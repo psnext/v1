@@ -1,8 +1,19 @@
 steps:
+# step 0 store build info
+- id: "Store Values"
+  name: ubuntu
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      # save the commit info & build date
+      NOW=$(date +"%Y-%m-%d %T")
+      node --version
+      docker --version
 - name: 'node'
   entrypoint: 'npm'
   args: ['install']
 - name: 'node'
   entrypoint: 'npm'
   args: ['run','nx','--',
-    'build:affected', '--base', 'origin/$BRANCH_NAME~1']
+    'run', 'affected:build', '--base', 'origin/$BRANCH_NAME~1']
