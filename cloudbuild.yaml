@@ -4,4 +4,5 @@ steps:
   args: ['install']
 - name: 'node'
   entrypoint: 'npm'
-  args: ['run','build']
+  args: ['run','nx','--',
+    'build:affected', '--base', 'origin/$BRANCH_NAME~1']
