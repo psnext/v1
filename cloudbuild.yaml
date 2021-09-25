@@ -6,6 +6,7 @@ steps:
   args:
     - -c
     - |
+      cwd
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > BUILDINFO
