@@ -91,7 +91,7 @@ export function TeamPage (props:RouteComponentProps) {
       </TabPanel>
       <TabPanel value={tabIndex} index={1} fullHeight>
         <Card sx={{mx:2, my:1}} elevation={0} variant="outlined">
-          <CardHeader title={'Users data'}/>
+          <CardHeader title={'Users data..'}/>
         </Card>
         <Box sx={{position: 'relative', width:'100%', height:'100%'}}>
           <Box sx={{px:2, position:'absolute', top:0, bottom:0, left:0, right:0}}>
