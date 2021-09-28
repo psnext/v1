@@ -22,8 +22,13 @@ steps:
       npm i --quiet --no-progress
       npm run nx -- build
       tar czf nm.tar.gz ./node_modules
-# step 2 Upload to Cloud Storage.
-- id: "Upload"
+      tar czf dist.tar.gz ./dist
+# step 2 Upload node_modules to Cloud Storage.
+- id: "Upload NM"
   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   args: ['gsutil', 'cp', 'nm.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz']
+# step 3 Upload dist to Cloud Storage.
+- id: "Upload D"
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gsutil', 'cp', 'dist.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/dist.tar.gz']
 timeout: 3600s
