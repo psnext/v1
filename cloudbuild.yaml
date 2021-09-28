@@ -20,15 +20,11 @@ steps:
       node --version
       docker --version
       npm i --quiet --no-progress
-      npm run nx -- build
+      npm run nx -- run-many --target=build --all
       tar czf nm.tar.gz ./node_modules
       tar czf dist.tar.gz ./dist
 # step 2 Upload node_modules to Cloud Storage.
-- id: "Upload NM"
+- id: "Upload"
   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', 'nm.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz']
-# step 3 Upload dist to Cloud Storage.
-- id: "Upload D"
-  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', 'dist.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/dist.tar.gz']
+  args: ['gsutil', 'cp', '*.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/']
 timeout: 3600s
