@@ -6,7 +6,7 @@ steps:
   args:
     - -c
     - |
-      cwd
+      pwd
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > BUILDINFO
@@ -19,4 +19,4 @@ steps:
 - name: 'node'
   entrypoint: 'npm'
   args: ['run','nx','--',
-    'run', 'affected:build', '--base', 'origin/$BRANCH_NAME~1']
+    'affected:build', '--base', 'origin/$BRANCH_NAME~1']
