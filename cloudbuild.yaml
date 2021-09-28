@@ -20,10 +20,18 @@ steps:
       node --version
       docker --version
       npm i --quiet --no-progress
-      npm run nx -- run-many --target=build --all
+      # npm run nx -- run-many --target=build --all
+      nx affected:build --base=origin/$BRANCH_NAME~1 --head=origin/$BRANCH_NAME # rerun what is affected by the last commit in $BRANCH_NAME
+# step 2 cache
+- id: "Cache"
+  name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
+  entrypoint: bash
+  args:
+    - -c
+    - |
       tar czf nm.tar.gz ./node_modules
       tar czf dist.tar.gz ./dist
-# step 2 Upload node_modules to Cloud Storage.
+# step 3 Upload cache to Cloud Storage.
 - id: "Upload"
   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   args: ['gsutil', 'cp', '*.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/']
