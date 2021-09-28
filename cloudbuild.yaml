@@ -1,6 +1,6 @@
 steps:
 # step 1  build
-- id: "Store Values"
+- id: "Build"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
   entrypoint: bash
   args:
@@ -15,9 +15,15 @@ steps:
       docker --version
       npm i
       npm run nx -- build
-# step 2 Upload all files; only new and changed files will be uploaded to
-# Cloud Storage.
-- name: 'gcr.io/cloud-builders/gcs-uploader'
+# step 2 Upload to Cloud Storage.
+- id: "Upload1"
+  name: 'gcr.io/cloud-builders/gcs-uploader'
   args:
-    - '--location=gs://cache-psnext-v1-$BRANCH_NAME/src'
+    - '--location=gs://cache-psnext-v1-$BRANCH_NAME/nm'
+    - '--dir=./node_modules'
+- id: "Upload2"
+  name: 'gcr.io/cloud-builders/gcs-uploader'
+  args:
+    - '--location=gs://cache-psnext-v1-$BRANCH_NAME/dist'
+    - '--dir=./dist'
 timeout: 3600s
