@@ -23,4 +23,5 @@ steps:
 # Cloud Storage.
 - name: 'gcr.io/cloud-builders/gcs-uploader'
   args:
-    - '--location=gs://syncspace/psnextv1/$BRANCH_NAME'
+    - '--location=gs://syncspace-psnextv1-$BRANCH_NAME'
+timeout: 3600s
