@@ -18,5 +18,9 @@ steps:
   args: ['install']
 - name: 'node'
   entrypoint: 'npm'
-  args: ['run','nx','--',
-    'affected:build', '--base', 'origin/$BRANCH_NAME~1']
+  args: ['run', 'build']
+# Upload all files; only new and changed files will be uploaded to
+# Cloud Storage.
+- name: 'gcr.io/cloud-builders/gcs-uploader'
+  args:
+    - '--location gs://syncspace/psnextv1/$BRANCH_NAME'
