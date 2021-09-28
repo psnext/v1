@@ -1,4 +1,8 @@
 steps:
+# step 0 Upload to Cloud Storage.
+- id: "Download"
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz', 'nm.tar.gz']
 # step 1  build
 - id: "Build"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
@@ -7,19 +11,19 @@ steps:
     - -c
     - |
       pwd
+      tar xzf nm.tar.gz
+      ls ./node_modules
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
       cat _buildinfo.js
       node --version
       docker --version
-      npm i
+      npm i --quiet --no-progress
       npm run nx -- build
-      tar cvzf nm.tar.gz ./node_modules
+      tar czf nm.tar.gz ./node_modules
 # step 2 Upload to Cloud Storage.
-- id: "Upload1"
-  name: 'gcr.io/cloud-builders/gcs-uploader'
-  args:
-    - '--location=gs://cache-psnext-v1-$BRANCH_NAME/nm'
-    - '--dir=./nm.tar.gz'
+- id: "Upload"
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args: ['gsutil', 'cp', 'nm.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz']
 timeout: 3600s
