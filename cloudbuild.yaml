@@ -1,7 +1,7 @@
 steps:
 # step 0 Upload to Cloud Storage.
 - id: "Download"
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz', 'nm.tar.gz']
 # step 1  build
 - id: "Build"
@@ -24,6 +24,6 @@ steps:
       tar czf nm.tar.gz ./node_modules
 # step 2 Upload to Cloud Storage.
 - id: "Upload"
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   args: ['gsutil', 'cp', 'nm.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz']
 timeout: 3600s
