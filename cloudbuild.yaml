@@ -20,6 +20,7 @@ steps:
       node --version
       docker --version
       npm i --quiet --no-progress
+      git log --pretty=oneline
       # npm run nx -- run-many --target=build --all
       npm run nx -- affected:build --base=origin/$BRANCH_NAME~1 --head=origin/$BRANCH_NAME # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
