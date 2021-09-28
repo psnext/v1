@@ -2,7 +2,7 @@ steps:
 # step 0 Upload to Cloud Storage.
 - id: "Download"
   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/nm.tar.gz', 'nm.tar.gz']
+  args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz', '.']
 # step 1  build
 - id: "Build"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
@@ -12,7 +12,7 @@ steps:
     - |
       pwd
       tar xzf nm.tar.gz
-      ls ./node_modules
+      tar xzf dist.tar.gz
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
