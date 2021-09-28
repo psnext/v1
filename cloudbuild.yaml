@@ -15,15 +15,11 @@ steps:
       docker --version
       npm i
       npm run nx -- build
+      tar cvzf nm.tar.gz ./node_modules
 # step 2 Upload to Cloud Storage.
 - id: "Upload1"
   name: 'gcr.io/cloud-builders/gcs-uploader'
   args:
     - '--location=gs://cache-psnext-v1-$BRANCH_NAME/nm'
-    - '--dir=./node_modules'
-- id: "Upload2"
-  name: 'gcr.io/cloud-builders/gcs-uploader'
-  args:
-    - '--location=gs://cache-psnext-v1-$BRANCH_NAME/dist'
-    - '--dir=./dist'
+    - '--dir=./nm.tar.gz'
 timeout: 3600s
