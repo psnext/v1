@@ -13,7 +13,6 @@ steps:
       pwd
       test -f ./nm.tar.gz && tar xzf nm.tar.gz
       test -f ./dist.tar.gz && tar xzf dist.tar.gz
-      _LAST_BUILD_COMMIT_SHA=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)
       git fetch --depth=10
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
@@ -24,7 +23,7 @@ steps:
       npm i --quiet --no-progress
       git log --pretty=oneline
       # npm run nx -- run-many --target=build --all
-      npm run nx -- affected:build --base=$_LAST_BUILD_COMMIT_SHA  # rerun what is affected by the last commit in $BRANCH_NAME
+      npm run nx -- affected:build --base=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
@@ -40,7 +39,7 @@ steps:
   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   args: ['gsutil', 'cp', '*.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/']
 timeout: 3600s
-options:
-  substitution_option: 'ALLOW_LOOSE'
-substitutions:
-  _LAST_BUILD_COMMIT_SHA: unknown
+# options:
+#   substitution_option: 'ALLOW_LOOSE'
+# substitutions:
+#   _LAST_BUILD_COMMIT_SHA: unknown
