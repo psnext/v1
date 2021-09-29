@@ -17,20 +17,19 @@ steps:
       pwd
       git fetch --depth=10
       git log --pretty=oneline
-      ls ./node_modules
       test -f ./nm.tar.gz && tar xzf nm.tar.gz
       test -f ./dist.tar.gz && tar xzf dist.tar.gz
-      ls ./node_modules
+      ls ./node_modules/LAST_BUILD_COMMIT_SHA
+      cat ./node_modules/LAST_BUILD_COMMIT_SHA
+      cat ./node_modules/LAST_BUILD_COMMIT_SHA > LAST_BUILD_COMMIT_SHA
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
       cat _buildinfo.js
       npm i --quiet --no-progress
       # npm run nx -- run-many --target=build --all
-      ls ./node_modules/LAST*
-      ls /workspace/node_modules/LAST*
-      cat ./node_modules/LAST_BUILD_COMMIT_SHA
-      npm run nx -- affected:build --base=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
+      cat LAST_BUILD_COMMIT_SHA
+      npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
