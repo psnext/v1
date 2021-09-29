@@ -11,7 +11,8 @@ function getDimensionObject(node) {
         x: "x" in rect ? rect.x : rect.left,
         y: "y" in rect ? rect.y : rect.top,
         right: rect.right,
-        bottom: rect.bottom
+        bottom: rect.bottom,
+        parent:null
     };
 }
 
