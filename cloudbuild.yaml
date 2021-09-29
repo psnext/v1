@@ -34,11 +34,12 @@ steps:
   args:
     - -c
     - |
-      echo -n $COMMIT_SHA > ./node_modules/LAST_BUILD_COMMIT_SHA
-      cat ./node_modules/LAST_BUILD_COMMIT_SHA
+      pwd
+      echo -n $COMMIT_SHA > /workspace/node_modules/LAST_BUILD_COMMIT_SHA
+      cat /workspace/node_modules/LAST_BUILD_COMMIT_SHA
       tar czf nm.tar.gz ./node_modules
       tar czf dist.tar.gz ./dist
-      ls '*.tar.gz'
+      ls *.tar.gz
 # step 3 Upload cache to Cloud Storage.
 - id: "Upload"
   waitFor:
