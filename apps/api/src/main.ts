@@ -23,7 +23,7 @@ const __dirname = dirname(__filename);
     } catch(err) {
       app.log.error(err.stack);
     };
-    app.log.info(`✔️ PSNI api server Listening at ${port}`);
+    app.log.info(`✔️ PSNI API server Listening at ${port}`);
   });
 
   server.on('error', console.error);
