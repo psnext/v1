@@ -33,7 +33,10 @@
           "executor":"@nrwl/workspace:run-commands",
           "options": {
               "commands": [
-                "docker build -f apps/api/Dockerfile -t psni_api .",
+                {
+                  "command": "docker build -f apps/api/Dockerfile -t psni_api .",
+                  "forwardAllArgs": false
+                },
                 "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api",
                 "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api"
               ],
