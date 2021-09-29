@@ -1,8 +1,8 @@
 steps:
 # step 0 Upload to Cloud Storage.
 - id: "Download"
-  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz', '.']
+  name: 'gcr.io/google.com/cloud-builders/gsutil'
+  args: ['cp', 'gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz', '.']
 # step 1  build
 - id: "Build"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
@@ -33,12 +33,14 @@ steps:
     - -c
     - |
       echo -n $COMMIT_SHA > ./node_modules/LAST_BUILD_COMMIT_SHA
+      cat ./node_modules/LAST_BUILD_COMMIT_SHA
       tar czf nm.tar.gz ./node_modules
       tar czf dist.tar.gz ./dist
 # step 3 Upload cache to Cloud Storage.
 - id: "Upload"
-  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', '*.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/']
+  # name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  name: 'gcr.io/google.com/cloud-builders/gsutil'
+  args: ['cp', '*.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/']
 timeout: 3600s
 # options:
 #   substitution_option: 'ALLOW_LOOSE'
