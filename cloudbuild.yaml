@@ -23,6 +23,7 @@ steps:
       npm i --quiet --no-progress
       git log --pretty=oneline
       # npm run nx -- run-many --target=build --all
+      cat ./node_modules/LAST_BUILD_COMMIT_SHA
       npm run nx -- affected:build --base=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
