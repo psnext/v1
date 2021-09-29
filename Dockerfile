@@ -20,3 +20,4 @@ RUN curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/rel
 > /usr/local/bin/docker-credential-gcr && chmod +x /usr/local/bin/docker-credential-gcr
 
 RUN docker-credential-gcr configure-docker
+RUN npm -g install @google-cloud/storage
