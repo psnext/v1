@@ -37,7 +37,8 @@
                 "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api",
                 "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api"
               ],
-              "parallel": false
+              "parallel": false,
+              "forwardAllArgs": false
           }
         },
         "serve": {
@@ -140,7 +141,10 @@
           "executor":"@nrwl/workspace:run-commands",
           "options": {
             "commands": [
-              "docker build -f apps/data/Dockerfile -t psni_data .",
+              {
+                "command": "docker build -f apps/data/Dockerfile -t psni_data .",
+                "forwardAllArgs": false
+              },
               "docker tag psni_data gcr.io/{args.projectid}/psnextv1-{args.branch}-data",
               "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-data"
             ],
