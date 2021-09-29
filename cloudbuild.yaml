@@ -13,7 +13,7 @@ steps:
       pwd
       test -f ./nm.tar.gz && tar xzf nm.tar.gz
       test -f ./dist.tar.gz && tar xzf dist.tar.gz
-      LAST_BUILD_COMMIT_SHA=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)
+      _LAST_BUILD_COMMIT_SHA=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)
       git fetch --depth=10
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
@@ -24,7 +24,7 @@ steps:
       npm i --quiet --no-progress
       git log --pretty=oneline
       # npm run nx -- run-many --target=build --all
-      npm run nx -- affected:build --base=$LAST_BUILD_COMMIT_SHA  # rerun what is affected by the last commit in $BRANCH_NAME
+      npm run nx -- affected:build --base=$_LAST_BUILD_COMMIT_SHA  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
@@ -43,4 +43,4 @@ timeout: 3600s
 options:
   substitution_option: 'ALLOW_LOOSE'
 substitutions:
-  LAST_BUILD_COMMIT_SHA: unknown
+  _LAST_BUILD_COMMIT_SHA: unknown
