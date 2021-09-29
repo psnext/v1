@@ -34,8 +34,8 @@
           "options": {
               "commands": [
                 "docker build -f apps/api/Dockerfile -t psni_api .",
-                "docker tag psni_api gcr.io/$PROJECT_ID/psnextv1-api",
-                "docker push gcr.io/$PROJECT_ID/psnextv1-api"
+                "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api",
+                "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api"
               ],
               "parallel": false
           }
@@ -141,8 +141,8 @@
           "options": {
             "commands": [
               "docker build -f apps/data/Dockerfile -t psni_data .",
-              "docker tag psni_data gcr.io/$PROJECT_ID/psnextv1-data",
-              "docker push gcr.io/$PROJECT_ID/psnextv1-data"
+              "docker tag psni_data gcr.io/{args.projectid}/psnextv1-{args.branch}-data",
+              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-data"
             ],
             "parallel": false
           }

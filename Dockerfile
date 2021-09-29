@@ -13,3 +13,10 @@ RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.g
 
 RUN apt-get -y update && \
     apt-get -y install docker-ce docker-ce-cli containerd.io
+
+
+RUN curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v2.0.0/docker-credential-gcr_linux_amd64-2.0.0.tar.gz" \
+| tar xz --to-stdout ./docker-credential-gcr \
+> /usr/local/bin/docker-credential-gcr && chmod +x /usr/local/bin/docker-credential-gcr
+
+RUN docker-credential-gcr configure-docker
