@@ -27,6 +27,7 @@ steps:
       npm i --quiet --no-progress
       # npm run nx -- run-many --target=build --all
       npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
+      npm run nx -- affected:build-docker --base=$(cat LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
