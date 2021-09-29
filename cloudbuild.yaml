@@ -11,8 +11,9 @@ steps:
     - -c
     - |
       pwd
-      tar xzf nm.tar.gz
-      tar xzf dist.tar.gz
+      test -f ./nm.tar.gz && tar xzf nm.tar.gz
+      test -f ./dist.tar.gz && tar xzf dist.tar.gz
+      git fetch --depth=10
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
@@ -21,8 +22,8 @@ steps:
       docker --version
       npm i --quiet --no-progress
       git log --pretty=oneline
-      # npm run nx -- run-many --target=build --all
-      npm run nx -- affected:build --base=origin/$BRANCH_NAME~1 --head=origin/$BRANCH_NAME # rerun what is affected by the last commit in $BRANCH_NAME
+      npm run nx -- run-many --target=build --all
+      # npm run nx -- affected:build --base=origin/$BRANCH_NAME~1 --head=origin/$BRANCH_NAME # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
