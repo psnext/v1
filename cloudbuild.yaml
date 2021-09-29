@@ -12,19 +12,21 @@ steps:
   args:
     - -c
     - |
+      node --version
+      docker --version
       pwd
+      git fetch --depth=10
+      git log --pretty=oneline
       test -f ./nm.tar.gz && tar xzf nm.tar.gz
       test -f ./dist.tar.gz && tar xzf dist.tar.gz
-      git fetch --depth=10
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
       cat _buildinfo.js
-      node --version
-      docker --version
       npm i --quiet --no-progress
-      git log --pretty=oneline
       # npm run nx -- run-many --target=build --all
+      ls ./node_modules/LAST*
+      ls /workspace/node_modules/LAST*
       cat ./node_modules/LAST_BUILD_COMMIT_SHA
       npm run nx -- affected:build --base=$(cat ./node_modules/LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
@@ -34,12 +36,10 @@ steps:
   args:
     - -c
     - |
-      pwd
       echo -n $COMMIT_SHA > /workspace/node_modules/LAST_BUILD_COMMIT_SHA
-      cat /workspace/node_modules/LAST_BUILD_COMMIT_SHA
       tar czf nm.tar.gz ./node_modules
       tar czf dist.tar.gz ./dist
-      ls *.tar.gz
+      echo 'generated cache files.'
 # step 3 Upload cache to Cloud Storage.
 - id: "Upload"
   waitFor:
