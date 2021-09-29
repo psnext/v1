@@ -19,8 +19,6 @@ steps:
       git log --pretty=oneline
       test -f ./nm.tar.gz && tar xzf nm.tar.gz
       test -f ./dist.tar.gz && tar xzf dist.tar.gz
-      ls ./node_modules/LAST_BUILD_COMMIT_SHA
-      cat ./node_modules/LAST_BUILD_COMMIT_SHA
       cat ./node_modules/LAST_BUILD_COMMIT_SHA > LAST_BUILD_COMMIT_SHA
       # save the commit info & build date
       NOW=$(date +"%Y-%m-%d %T")
@@ -28,7 +26,6 @@ steps:
       cat _buildinfo.js
       npm i --quiet --no-progress
       # npm run nx -- run-many --target=build --all
-      cat LAST_BUILD_COMMIT_SHA
       npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
 - id: "Cache"
