@@ -46,3 +46,7 @@ RUN curl -fsSL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/rel
 > /usr/local/bin/docker-credential-gcr && chmod +x /usr/local/bin/docker-credential-gcr
 
 RUN docker-credential-gcr configure-docker
+
+RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+RUN apt-get update && apt-get install -y kubectl
