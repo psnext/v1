@@ -48,9 +48,12 @@
           "executor":"@nrwl/workspace:run-commands",
           "options": {
               "commands": [
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/BRANCH/{args.branch}/g' {} \\;",
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/PROJECTID/{args.projectid}/g' {} \\;",
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/api/g' {} \\;",
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+                {
+                  "command": "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/APPNAME/api/g' {} \\;",
+                  "forwardAllArgs":false
+                },
                 "kubectl apply -k ./apps/api/k8s -n {args.branch}"
               ],
               "parallel": false,
@@ -171,9 +174,12 @@
           "executor":"@nrwl/workspace:run-commands",
           "options": {
               "commands": [
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/BRANCH/{args.branch}/g' {} \\;",
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/PROJECTID/{args.projectid}/g' {} \\;",
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/data/g' {} \\;",
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+                {
+                  "command": "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/APPNAME/data/g' {} \\;",
+                  "forwardAllArgs":false
+                },
                 "kubectl apply -k ./apps/data/k8s -n {args.branch}"
               ],
               "parallel": false,
