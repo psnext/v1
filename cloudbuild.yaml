@@ -30,15 +30,9 @@ steps:
   args:
     - -c
     - |
-      if [-f LAST_BUILD_COMMIT_SHA]; then
-        npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA) && \
-        npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME" && \
-        npm run nx -- affected --target=k8s-deploy --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
-      else
-        npm run nx -- run-many target=build --all  && \
-        npm run nx -- run-many --target=build-docker --all --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME" && \
-        npm run nx -- run-many --target=k8s-deploy --all --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
-      if
+      npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)
+      npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
+      npm run nx -- affected --target=k8s-deploy --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
 # step 2 cache
 - id: cache
   waitFor:
