@@ -55,7 +55,7 @@
                   "forwardAllArgs":false
                 },
                 {
-                  "command": "cat ./apps/api/k8s/kustomization.yaml",
+                  "command": "kubectl kustomize ./apps/api/k8s/kustomization.yaml",
                   "forwardAllArgs": false
                 },
                 "kubectl apply -k ./apps/api/k8s -n {args.branch}"
