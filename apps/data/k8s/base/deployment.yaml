@@ -14,5 +14,8 @@ spec:
         apptype: psniapp
     spec:
       containers:
-      - name: psni-app-image
+      - name: psni-data-app
         image: app-image
+        ports:
+        - containerPort: 80
+
