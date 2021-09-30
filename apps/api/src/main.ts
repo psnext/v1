@@ -23,16 +23,16 @@ const __dirname = dirname(__filename);
     } catch(err) {
       app.log.error(err.stack);
     };
-    app.log.info(`✔️ PSNext API server Listening at ${port}`);
+    app.log.info(`✔️ PSNext v1 API server Listening at ${port}`);
   });
 
   server.on('error', console.error);
-  function onSIGHUP(signal) {
+  function onSIGHUP(signal: string) {
     console.log(`*^!@4=> Received event: ${signal}`);
 
   }
 
-  function closeGracefully(signal) {
+  function closeGracefully(signal: string) {
     console.log(`*^!@4=> Received event: ${signal}`);
     app.db||app.db.pool.end();
     server.close(async ()=>{
