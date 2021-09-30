@@ -54,6 +54,10 @@
                   "command": "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/APPNAME/api/g' {} \\;",
                   "forwardAllArgs":false
                 },
+                {
+                  "command": "cat ./apps/api/k8s/kustomization.yaml",
+                  "forwardAllArgs": false
+                },
                 "kubectl apply -k ./apps/api/k8s -n {args.branch}"
               ],
               "parallel": false
