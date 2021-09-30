@@ -44,6 +44,18 @@
               "forwardAllArgs": false
           }
         },
+        "k8s-deploy":{
+          "executor":"@nrwl/workspace:run-commands",
+          "options": {
+              "commands": [
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/BRANCH/{args.branch}/g' {} \\;",
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/PROJECTID/{args.projectid}/g' {} \\;",
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/api/g' {} \\;"
+              ],
+              "parallel": false,
+              "forwardAllArgs": false
+          }
+        },
         "serve": {
           "executor": "@nrwl/node:execute",
           "options": {
@@ -152,6 +164,18 @@
               "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-data"
             ],
             "parallel": false
+          }
+        },
+        "k8s-deploy":{
+          "executor":"@nrwl/workspace:run-commands",
+          "options": {
+              "commands": [
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/BRANCH/{args.branch}/g' {} \\;",
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/PROJECTID/{args.projectid}/g' {} \\;",
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/data/g' {} \\;"
+              ],
+              "parallel": false,
+              "forwardAllArgs": false
           }
         }
       }

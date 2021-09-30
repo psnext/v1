@@ -9,7 +9,6 @@ steps:
       docker --version
       kubectl version --client
       gcloud container clusters get-credentials --project="$PROJECT_ID" --region="$_CLOUDSDK_COMPUTE_ZONE" "$_CLOUDSDK_CONTAINER_CLUSTER"
-      kubectl get pods
       pwd
       gsutil cp gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz .
       git fetch --depth=10
@@ -33,7 +32,8 @@ steps:
     - |
       # npm run nx -- run-many --target=build --all
       npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
-      npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"  # rerun what is affected by the last commit in $BRANCH_NAME
+      npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
+      npm run nx -- affected --target=k8s-deploy --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
 # step 2 cache
 - id: cache
   waitFor:

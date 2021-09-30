@@ -1,0 +1,12 @@
+namespace: psni
+namePrefix: psni-
+nameSuffix: "-BRANCH-APPNAME"
+commonLabels:
+  app: APPNAME
+  branch: BRANCH
+bases:
+- ./BRANCH
+images:
+- name: app-image
+  newName: gcr.io/PROJECTID/psnextv1-BRANCH-APPNAME
+  newTag: latest
