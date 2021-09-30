@@ -1,12 +1,10 @@
 steps:
 # step 0 Upload to Cloud Storage.
-- id: "Download"
-  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz', '.']
+# - id: "Download"
+#   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+#   args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz', '.']
 # step 1  build
 - id: "Build"
-  waitFor:
-    - "Download"
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
   entrypoint: bash
   args:
@@ -15,6 +13,7 @@ steps:
       node --version
       docker --version
       pwd
+      gsutil cp gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz .
       git fetch --depth=10
       git log --pretty=oneline
       test -f ./nm.tar.gz && tar xzf nm.tar.gz
