@@ -1,10 +1,5 @@
 steps:
-# step 0 Upload to Cloud Storage.
-# - id: "Download"
-#   name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
-#   args: ['gsutil', 'cp', 'gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz', '.']
-# step 1  build
-- id: "Build"
+- id: download
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
   entrypoint: bash
   args:
@@ -24,11 +19,22 @@ steps:
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
       cat _buildinfo.js
       npm i --quiet --no-progress
+# step 1  build
+- id: build
+  waitFor:
+    - download
+  name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
+  entrypoint: bash
+  args:
+    - -c
+    - |
       # npm run nx -- run-many --target=build --all
       npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)  # rerun what is affected by the last commit in $BRANCH_NAME
       npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"  # rerun what is affected by the last commit in $BRANCH_NAME
 # step 2 cache
-- id: "Cache"
+- id: cache
+  waitFor:
+    - build
   name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
   entrypoint: bash
   args:
@@ -38,12 +44,7 @@ steps:
       tar czf nm.tar.gz ./node_modules
       tar czf dist.tar.gz ./dist
       echo 'generated cache files.'
-# step 3 Upload cache to Cloud Storage.
-- id: "Upload"
-  waitFor:
-    - Cache
-  name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: ['gsutil', 'cp', '*.tar.gz', 'gs://cache-psnext-v1-$BRANCH_NAME/']
+      gsutil cp *.tar.gz gs://cache-psnext-v1-$BRANCH_NAME/
 timeout: 3600s
 # options:
 #   substitution_option: 'ALLOW_LOOSE'
