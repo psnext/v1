@@ -50,7 +50,8 @@
               "commands": [
                 "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/BRANCH/{args.branch}/g' {} \\;",
                 "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/PROJECTID/{args.projectid}/g' {} \\;",
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/api/g' {} \\;"
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/api/g' {} \\;",
+                "kubectl apply -k ./apps/api/k8s -n {args.branch}"
               ],
               "parallel": false,
               "forwardAllArgs": false
@@ -172,7 +173,8 @@
               "commands": [
                 "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/BRANCH/{args.branch}/g' {} \\;",
                 "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/PROJECTID/{args.projectid}/g' {} \\;",
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/data/g' {} \\;"
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i '' -e 's/APPNAME/data/g' {} \\;",
+                "kubectl apply -k ./apps/data/k8s -n {args.branch}"
               ],
               "parallel": false,
               "forwardAllArgs": false
