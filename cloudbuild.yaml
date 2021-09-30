@@ -8,7 +8,8 @@ steps:
       node --version
       docker --version
       kubectl version --client
-      kubectl cluster-info
+      gcloud container clusters get-credentials --project="$PROJECT_ID" --region="$_CLOUDSDK_COMPUTE_ZONE" "$_CLOUDSDK_CONTAINER_CLUSTER"
+      kubectl get pods
       pwd
       gsutil cp gs://cache-psnext-v1-$BRANCH_NAME/*.tar.gz .
       git fetch --depth=10
