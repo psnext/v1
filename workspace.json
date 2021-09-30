@@ -56,8 +56,7 @@
                 },
                 "kubectl apply -k ./apps/api/k8s -n {args.branch}"
               ],
-              "parallel": false,
-              "forwardAllArgs": false
+              "parallel": false
           }
         },
         "serve": {
