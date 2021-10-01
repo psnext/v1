@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import { json, urlencoded } from 'express';
 import logger from '../logger.js';
 import config from '../config.js';
+import mailer from '../mailer.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import {initializeCache} from '../cache.js';
@@ -15,7 +16,7 @@ const express = require('express');
 
 const app = express();
 app.config = config;
-
+app.mailer = mailer;
 //using the logger and its configured transports, to save the logs created by Morgan
 const logStream = {
   write: (text) => {
