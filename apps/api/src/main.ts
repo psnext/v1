@@ -9,7 +9,7 @@ import app from './app/app.js';
 
 
 ;(async ()=>{
-  const port = process.env.port || 3333;
+  const port = app.config.PORT;
   const server = app.listen(port, async () => {
     // check db connection
     try{
