@@ -2,7 +2,7 @@ namePrefix: psni-
 nameSuffix: "-BRANCH-APPNAME"
 commonLabels:
   app: APPNAME
-  branch: BRANCH
+  env: BRANCH
 bases:
 - ./BRANCH
 images:

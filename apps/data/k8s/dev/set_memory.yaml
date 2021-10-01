@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       containers:
-      - name: dep
+      - name: psni-data-app
         resources:
           limits:
             memory: 512Mi

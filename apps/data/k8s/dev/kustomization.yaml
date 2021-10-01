@@ -2,3 +2,4 @@ bases:
 - ../base
 patchesStrategicMerge:
 - set_replicas.yaml
+- set_memory.yaml

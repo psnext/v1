@@ -183,6 +183,10 @@
                   "command": "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/APPNAME/data/g' {} \\;",
                   "forwardAllArgs":false
                 },
+                {
+                  "command": "kubectl kustomize ./apps/data/k8s",
+                  "forwardAllArgs": false
+                },
                 "kubectl apply -k ./apps/data/k8s -n {args.branch}"
               ],
               "parallel": false,
