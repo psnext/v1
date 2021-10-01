@@ -1,11 +1,11 @@
 namePrefix: psni-
-nameSuffix: "-BRANCH-APPNAME"
+nameSuffix: "-BRANCH-data"
 commonLabels:
-  app: APPNAME
+  app: data
   env: BRANCH
 bases:
 - ./BRANCH
 images:
 - name: app-image
-  newName: gcr.io/PROJECTID/psnextv1-BRANCH-APPNAME
-  newTag: latest
+  newName: gcr.io/PROJECTID/psnextv1-BRANCH-data
+  newTag: TAG

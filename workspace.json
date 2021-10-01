@@ -37,8 +37,8 @@
                   "command": "docker build -f apps/api/Dockerfile -t psni_api .",
                   "forwardAllArgs": false
                 },
-                "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api",
-                "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api"
+                "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api:{args.sha}",
+                "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api:{args.sha}"
               ],
               "parallel": false,
               "forwardAllArgs": false
@@ -49,11 +49,8 @@
           "options": {
               "commands": [
                 "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
                 "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
-                {
-                  "command": "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/APPNAME/api/g' {} \\;",
-                  "forwardAllArgs":false
-                },
                 {
                   "command": "kubectl kustomize ./apps/api/k8s",
                   "forwardAllArgs": false
@@ -167,8 +164,8 @@
                 "command": "docker build -f apps/data/Dockerfile -t psni_data .",
                 "forwardAllArgs": false
               },
-              "docker tag psni_data gcr.io/{args.projectid}/psnextv1-{args.branch}-data",
-              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-data"
+              "docker tag psni_data gcr.io/{args.projectid}/psnextv1-{args.branch}-data:{args.sha}",
+              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-data:{args.sha}"
             ],
             "parallel": false
           }
@@ -179,10 +176,7 @@
               "commands": [
                 "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
                 "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
-                {
-                  "command": "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/APPNAME/data/g' {} \\;",
-                  "forwardAllArgs":false
-                },
+                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
                 {
                   "command": "kubectl kustomize ./apps/data/k8s",
                   "forwardAllArgs": false

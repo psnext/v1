@@ -31,8 +31,17 @@ steps:
     - -c
     - |
       npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)
-      npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
-      npm run nx -- affected --target=k8s-deploy --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME"
+# setp 2 build image
+- id: deploy
+  waitFor:
+    - build
+  name: 'gcr.io/$PROJECT_ID/psnextv1-builder'
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      npm run nx -- affected --target=build-docker --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME --sha=$COMMIT_SHA"
+      npm run nx -- affected --target=k8s-deploy --base=$(cat LAST_BUILD_COMMIT_SHA) --args="--projectid=$PROJECT_ID --branch=$BRANCH_NAME --sha=$COMMIT_SHA"
 # step 2 cache
 - id: cache
   waitFor:
