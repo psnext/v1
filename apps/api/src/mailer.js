@@ -1,5 +1,5 @@
 
-import nodemailer from "nodemailer";
+const nodemailer = require("nodemailer");
 
 let mailer;
 if (process.env.NODE_ENV==='test') {

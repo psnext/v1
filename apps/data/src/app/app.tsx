@@ -20,6 +20,9 @@ const TeamPage = loadable(async () => import('../pages/team/team'), {
 const UserPage = loadable(async () => import('../pages/user/user'), {
   fallback: <div>Loading...</div>,
 })
+const AdminPage = loadable(async () => import('../pages/admin/admin'), {
+  fallback: <div>Loading...</div>,
+})
 
 export function App() {
   const authState = useProviderAuth()
@@ -29,6 +32,11 @@ export function App() {
     <ThemeProvider theme={theme}>
       {GlobalStylesOverride}
       <Switch>
+        <Route
+          path="/login"
+          exact
+          render={(props) => <Login {...props}/>}
+        />
         <AuthRoute
           path="/"
           exact
@@ -41,10 +49,10 @@ export function App() {
           path="/team"
           exact
           render={(props) => <TeamPage {...props}/>}/>
-        <Route
-          path="/login"
+        <AuthRoute
+          path="/admin"
           exact
-          render={(props) => <Login {...props}/>}
+          render={(props) => <AdminPage {...props}/>}
         />
       </Switch>
     </ThemeProvider>

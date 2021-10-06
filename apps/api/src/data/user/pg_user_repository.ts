@@ -44,8 +44,10 @@ export default class PG_User_Repository implements IUserRepository {
         q.push(`${k}=$${i+2}`);
         vals.push(user.changes[k]);
       });
-      const res = await this.#pool.query(`UPDATE users SET ${q.join(',')} WHERE id=$1 RETURNING id, email, name, picture, details`,
-        vals);
+      if (q.length===0) return user;
+      const qstr = `UPDATE users SET ${q.join(',')} WHERE id=$1 RETURNING id, email, name, picture, details`;
+      // console.debug(qstr);
+      const res = await this.#pool.query(qstr, vals);
       if (res.rowCount===0) return null;
       const data = res.rows[0];
       user.name = data.name;

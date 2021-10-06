@@ -75,5 +75,11 @@ app.get('/ping', function(_req,res){
 import usersApiRouter from '../api/users';
 app.use('/api/users', usersApiRouter);
 
+app.get('/api/job/:id', async (req, res)=>{
+  const {log, cache} = req.app;
+
+  const jobdetails = await cache.get(req.params.id)
+  return res.json(jobdetails);
+});
 
 export default app;

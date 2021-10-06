@@ -1,10 +1,10 @@
 import * as express from 'express';
-import fns from 'date-fns'
+import * as fns from 'date-fns'
 import axios from 'axios';
 import * as multer from 'multer';
-import Excel from 'exceljs';
+import * as Excel from 'exceljs';
 import {User} from '../data';
-import {v4 as uuid} from 'uuid';
+import * as crypto from 'crypto';
 
 var storage = multer.memoryStorage()
 var upload = multer({ storage: storage })
@@ -59,7 +59,7 @@ async function* getUserValues(log, date, worksheet, headers) {
     const name = firstname.trim()+' '+middlename.trim()+' '+lastname.trim();
     const email = (headers.EMAIL_ADDRESS<0?null:row.getCell(headers.EMAIL_ADDRESS).value)||'';
     const details={snapshotdate: fns.format(date,'yyyy-MM-dd')};
-    if (headers.GENDER) {
+    if (headers.GENDER!==-1) {
       details.gender = row.getCell(headers.GENDER).value;
     }
     if (status==='Active Contingent Assignment'){
@@ -67,23 +67,22 @@ async function* getUserValues(log, date, worksheet, headers) {
     } else {
       details.contractor=false;
     }
-    if (headers.ORACLE_ID) {
+    if (headers.ORACLE_ID!==-1) {
       details.oid = row.getCell(headers.ORACLE_ID).value;
     }
-
-    if (headers.CLIENT_NAME) {
+    if (headers.CLIENT_NAME!==-1) {
       details.client = (headers.CLIENT_NAME<0?null:row.getCell(headers.CLIENT_NAME).value)||'';
     }
 
-    if (headers.HRMS_TEAM_LEVEL2) {
+    if (headers.HRMS_TEAM_LEVEL2!==-1) {
       details.capability = (headers.HRMS_TEAM_LEVEL2<0?null:row.getCell(headers.HRMS_TEAM_LEVEL2).value)||'';
     }
 
-    if (headers.TEAM_NAME) {
+    if (headers.TEAM_NAME!==-1) {
       details.team = row.getCell(headers.TEAM_NAME).value;
     }
 
-    if (headers.SUPERVISOR){
+    if (headers.SUPERVISOR!==-1){
       let sparts = row.getCell(headers.SUPERVISOR).value;
       if (sparts) {
         sparts = sparts.split('(');
@@ -94,16 +93,16 @@ async function* getUserValues(log, date, worksheet, headers) {
           .join(' ');
       }
     }
-    if (headers.TITLE_NAME) {
+    if (headers.TITLE_NAME!==-1) {
       details.title = row.getCell(headers.TITLE_NAME).value;
     }
-    if (headers.CAREER_STAGE) {
+    if (headers.CAREER_STAGE!==-1) {
       details.career_stage = row.getCell(headers.CAREER_STAGE).value;
     }
-    if (headers.STARTDATE) {
+    if (headers.STARTDATE!==-1) {
       details.startdate = fns.format(row.getCell(headers.STARTDATE).value,'yyyy-MM-dd');
     }
-    if (headers.LASTPROMODATE) {
+    if (headers.LASTPROMODATE!==-1) {
       try{
         const lpd = row.getCell(headers.LASTPROMODATE).value;
         if (lpd){
@@ -120,11 +119,12 @@ async function* getUserValues(log, date, worksheet, headers) {
 }
 
 userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.single('usersdata'), async (req, res)=>{
-  const {log} = req.app;
+  const {log, cache} = req.app;
   const {pool} = req.app.db;
   const userRepo = req.db.userRepository;
   const date = fns.parseISO(req.query.date);
 
+  let jobid;
   try {
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(req.file.buffer);
@@ -152,7 +152,10 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
     headers.LASTPROMODATE = headerRow.values.indexOf('LAST_PROMOTION_DATE');
     headers.TEAM_NAME = headerRow.values.indexOf('TEAM_NAME');
     // const CAREER_STAGE = headerRow.values.indexOf('CAREER_STAGE');
-
+    jobid=crypto.randomUUID();
+    log.info('Created upload job:'+jobid);
+    cache.set(jobid,{jobid, status:'processing', completed:0, total: worksheet.rowCount-1 })
+    res.json({jobid});
     let updatedCount=0;
     for await(let values of getUserValues(log, date, worksheet, headers)) {
       try {
@@ -174,8 +177,6 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
           user.details = {...user.details, ...values.details};
         }
         await userRepo.update(user);
-        updatedCount++;
-
 
         let hr = await pool.query('SELECT id, snapshotdate, details from users_history WHERE id=$1 AND snapshotdate=$2', [user.id, values.details.snapshotdate]);
         if (hr.rowCount===0) {
@@ -186,14 +187,22 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
         await pool.query('UPDATE users_history SET details=$3 WHERE id=$1 AND snapshotdate=$2',
           [user.id, hdetails.snapshotdate, hdetails]);
 
+        updatedCount++;
+        cache.set(jobid,{jobid, status:'processing', completed: updatedCount, total: worksheet.rowCount-1});
+        if (updatedCount%100){
+          log.info(JSON.stringify({jobid, status:'processing', completed: updatedCount, total: worksheet.rowCount-1}));
+        }
       } catch (err) {
-        log.error(err)
+        log.error(err);
       }
     }
-    return res.json({message:`Updated ${updatedCount} users.`});
+    cache.set(jobid,{status:'done', completed: updatedCount, total: worksheet.rowCount-1})
   } catch (ex) {
     log.error(ex);
-    return res.sendStatus(500);
+    if (!jobid) {
+      return res.sendStatus(400);
+    }
+    cache.set(jobid,{status:'error', error:ex});
   }
 });
 
@@ -287,6 +296,7 @@ userApiRouter.get('/:id/roles', requirePermission(['UserRoles.Read.Self','UserRo
     return res.status(500).send({message:'Unable to fetch the roles for the user'});
   }
 });
+
 userApiRouter.get('/:id/permissions', requireSession, async (req, res)=>{
   const {log} = req.app;
   const userId = req.params.id==='me'?req.sessionData.userInfo.id:req.params.id;

@@ -1,10 +1,7 @@
-import { AppBar, Backdrop, Box, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
+import { Alert, AppBar, Backdrop, Box, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
 import { DataTable, Page, TabPanel } from "@psni/sharedui";
-import axios from "axios";
-import { relative } from "path";
 import { useMemo, useState } from "react";
 import { RouteComponentProps } from "react-router-dom";
-import useSWR from "swr";
 import { useUsersList } from "../../hooks/useUsersList";
 
 
@@ -14,9 +11,6 @@ function a11yProps(suffix:string, index:number) {
     'aria-controls': `${suffix}-tabpanel-${index}`,
   };
 }
-
-
-const fetcher = (url:string) => axios.get(url).then(res => res.data)
 
 export function TeamPage (props:RouteComponentProps) {
   const [tabIndex, setTabIndex] = useState(1);
@@ -83,6 +77,7 @@ export function TeamPage (props:RouteComponentProps) {
         <Tab label="Data" {...a11yProps('team', 1)} />
       </Tabs>
     </AppBar>
+    {error?<Alert color="error">{error}</Alert>:null}
     <div style={{height:'100%', display:'flex'}}>
       <TabPanel value={tabIndex} index={0}>
         <Box sx={{p:2}}>
