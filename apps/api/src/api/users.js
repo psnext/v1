@@ -43,7 +43,7 @@ const requirePermission=function(permissions) {
   }
 }
 
-async function* getUserValues(log, date, worksheet, headers) {
+async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
   let i = 2;
   while (i < worksheet.rowCount) {
     const row = worksheet.getRow(i);
@@ -114,8 +114,16 @@ async function* getUserValues(log, date, worksheet, headers) {
       }
     }
     i++;
+    cache.set(jobid,{jobid, status:'processing', completed: i, total: worksheet.rowCount-1});
+    if (i%100===0){
+      log.info(JSON.stringify({jobid, status:'processing', completed: i, total: worksheet.rowCount-1}));
+    }
     yield {name, email:email.toLowerCase(), details};
   }
+  //calculate summaries
+
+  log.debug(`finished job: ${jobid}`);
+  cache.set(jobid,{status:'done', completed: i, total: worksheet.rowCount-1})
 }
 
 userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.single('usersdata'), async (req, res)=>{
@@ -136,29 +144,29 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
     log.debug(`Data elements: ${headerRow.values.join(',')}`);
 
     const headers={};
-    headers.STATUS = headerRow.values.indexOf('STATUS');
-    headers.FIRST_NAME = headerRow.values.indexOf('FIRST_NAME');
+    headers.STATUS      = headerRow.values.indexOf('STATUS');
+    headers.FIRST_NAME  = headerRow.values.indexOf('FIRST_NAME');
     headers.MIDDLE_NAME = headerRow.values.indexOf('MIDDLE_NAME');
-    headers.LAST_NAME = headerRow.values.indexOf('LAST_NAME');
+    headers.LAST_NAME   = headerRow.values.indexOf('LAST_NAME');
     headers.EMAIL_ADDRESS = headerRow.values.indexOf('EMAIL_ADDRESS');
-    headers.GENDER = headerRow.values.indexOf('GENDER');
-    headers.SUPERVISOR = headerRow.values.indexOf('SUPERVISOR');
+    headers.GENDER      = headerRow.values.indexOf('GENDER');
+    headers.SUPERVISOR  = headerRow.values.indexOf('SUPERVISOR');
     headers.CLIENT_NAME = headerRow.values.indexOf('CLIENT_NAME');
     headers.HRMS_TEAM_LEVEL2 = headerRow.values.indexOf('HRMS_TEAM_LEVEL2');
-    headers.ORACLE_ID = headerRow.values.indexOf('ORACLE_ID');
-    headers.TITLE_NAME = headerRow.values.indexOf('TITLE_NAME');
+    headers.ORACLE_ID   = headerRow.values.indexOf('ORACLE_ID');
+    headers.TITLE_NAME  = headerRow.values.indexOf('TITLE_NAME');
     headers.CAREER_STAGE = headerRow.values.indexOf('CAREER_STAGE');
-    headers.STARTDATE = headerRow.values.indexOf('STARTDATE');
+    headers.STARTDATE   = headerRow.values.indexOf('STARTDATE');
     headers.LASTPROMODATE = headerRow.values.indexOf('LAST_PROMOTION_DATE');
-    headers.TEAM_NAME = headerRow.values.indexOf('TEAM_NAME');
+    headers.TEAM_NAME   = headerRow.values.indexOf('TEAM_NAME');
     // const CAREER_STAGE = headerRow.values.indexOf('CAREER_STAGE');
     jobid=crypto.randomUUID();
     log.info('Created upload job:'+jobid);
     cache.set(jobid,{jobid, status:'processing', completed:0, total: worksheet.rowCount-1 })
     res.json({jobid});
-    let updatedCount=0;
-    for await(let values of getUserValues(log, date, worksheet, headers)) {
+    for await(let values of getUserValues(jobid, cache, log, date, worksheet, headers)) {
       try {
+        pool.query('INSERT INTO clients (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [values.details.client]);
         const matches = await pool.query('SELECT id, name, email, picture, details from users WHERE lower(email) LIKE $1',
           [values.email]);
         let user;
@@ -186,23 +194,28 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
         const hdetails={...hr.rows[0].details,...values.details};
         await pool.query('UPDATE users_history SET details=$3 WHERE id=$1 AND snapshotdate=$2',
           [user.id, hdetails.snapshotdate, hdetails]);
-
-        updatedCount++;
-        cache.set(jobid,{jobid, status:'processing', completed: updatedCount, total: worksheet.rowCount-1});
-        if (updatedCount%100){
-          log.info(JSON.stringify({jobid, status:'processing', completed: updatedCount, total: worksheet.rowCount-1}));
-        }
       } catch (err) {
         log.error(err);
       }
     }
-    cache.set(jobid,{status:'done', completed: updatedCount, total: worksheet.rowCount-1})
   } catch (ex) {
     log.error(ex);
     if (!jobid) {
       return res.sendStatus(400);
     }
     cache.set(jobid,{status:'error', error:ex});
+  }
+});
+
+userApiRouter.get('/snapshotdates', async (req, res)=>{
+  const {log} = req.app;
+  const {pool} = req.app.db;
+  try {
+    const results= await pool.query(`SELECT DISTINCT snapshotdate FROM users_history ORDER BY snapshotdate DESC;`);
+    return res.json(results.rows.map(r=>r.snapshotdate));
+  } catch (err) {
+    log.error(err);
+    return res.status(500).send({message:'Unable to fetch the snapshotdates'});
   }
 });
 
@@ -316,6 +329,7 @@ userApiRouter.get('/:id/permissions', requireSession, async (req, res)=>{
   }
 });
 
+
 userApiRouter.get('/', requireSession, async (req, res)=>{
   const {log} = req.app;
   const {pool} = req.app.db;
@@ -335,7 +349,7 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
   if (uperms.find(p=>p.name==='Users.Read.All')){
     log.debug('matched Users.Read.All');
     results = await pool.query(`SELECT * FROM users
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')>=TO_DATE($5,'YYYY-MM-DD')
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD')
       ORDER BY name LIMIT $1 OFFSET $2`,
       [limit, offset, `%${name}%`, `%${email}%`,date]);
   }
@@ -351,7 +365,7 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
     }
     const condition=results.rows.map(r=>` (${r.condition}) `).join('AND');
     results = await pool.query(`SELECT * FROM users
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')>=TO_DATE($5,'YYYY-MM-DD') AND (${condition})
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD') AND (${condition})
       ORDER BY name LIMIT $1 OFFSET $2`,
       [limit, offset, `%${name}%`, `%${email}%`, date]);
   }
@@ -367,7 +381,7 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
           FROM users e
           INNER JOIN subordinates s ON s.details->'oid' = e.details->'supervisor_oid'
       ) SELECT * FROM subordinates
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')>=TO_DATE($6,'YYYY-MM-DD')
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($6,'YYYY-MM-DD')
       ORDER BY name LIMIT $1 OFFSET $2;`,
     [limit, offset, `%${name}%`, `%${email}%`, userId, date]);
   }

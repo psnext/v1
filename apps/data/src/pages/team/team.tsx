@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Alert, AppBar, Backdrop, Box, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
+
 import { DataTable, Page, TabPanel } from "@psni/sharedui";
 import { useMemo, useState } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useUsersList } from "../../hooks/useUsersList";
+import ScoreCard from "./scorecard";
 
 
 function a11yProps(suffix:string, index:number) {
@@ -29,6 +32,11 @@ export function TeamPage (props:RouteComponentProps) {
       {
         Header: 'Email',
         accessor: 'email',
+        aggregate: 'count',
+        Aggregated:(d:any)=>{
+          const emails= d.cell.row.leafRows.map((v:any)=>v.original.email).join(',');
+          return <a href={`mailto:${emails}`}>️✉ {d.value}</a>
+        }
       },
       {
         Header: 'Title',
@@ -73,16 +81,14 @@ export function TeamPage (props:RouteComponentProps) {
         variant="fullWidth"
         aria-label="full width tabs example"
       >
-        <Tab label="Scorecard" {...a11yProps('team', 0)} />
+        <Tab label="Dashboard" {...a11yProps('team', 0)} />
         <Tab label="Data" {...a11yProps('team', 1)} />
       </Tabs>
     </AppBar>
     {error?<Alert color="error">{error}</Alert>:null}
     <div style={{height:'100%', display:'flex'}}>
       <TabPanel value={tabIndex} index={0}>
-        <Box sx={{p:2}}>
-          Scorecard
-        </Box>
+        <ScoreCard/>
       </TabPanel>
       <TabPanel value={tabIndex} index={1} fullHeight>
         <Card sx={{mx:2, my:1}} elevation={0} variant="outlined">

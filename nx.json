@@ -37,6 +37,9 @@
       "tags": [],
       "implicitDependencies": ["data"]
     },
+    "models": {
+      "tags": []
+    },
     "sharedui": {
       "tags": []
     }

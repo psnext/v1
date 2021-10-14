@@ -72,10 +72,9 @@ function UploadUsers(){
             setState({...state, error:'Unable to find the upload status', isBusy:false});
           })
       }, 1000);
+    } else {
+      handleClose();
     }
-
-    handleClose();
-
     // setTimeout(()=>{
     //   setState({...state, open:false, isBusy: false, error:''});
     // }, 3000);

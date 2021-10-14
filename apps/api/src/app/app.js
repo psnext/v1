@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import {initializeCache} from '../cache.js';
 import {initializeData, setDbContext} from '../dbcontext.js';
-
+const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -67,6 +67,19 @@ app.use(cookieParser(config.cookieSecret));
 import {getAuthRouter} from './auth';
 app.use(getAuthRouter(app));
 app.use(setDbContext);
+
+
+
+function shouldCompress (req, res) {
+  if (req.headers['x-no-compression']) {
+    // don't compress responses with this request header
+    return false
+  }
+
+  // fallback to standard filter function
+  return compression.filter(req, res)
+}
+app.use(compression({ filter: shouldCompress }))
 
 app.get('/ping', function(_req,res){
   res.status(200).send('pong');

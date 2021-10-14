@@ -29,35 +29,35 @@
             }
           }
         },
-        "build-docker":{
-          "executor":"@nrwl/workspace:run-commands",
+        "build-docker": {
+          "executor": "@nrwl/workspace:run-commands",
           "options": {
-              "commands": [
-                {
-                  "command": "docker build -f apps/api/Dockerfile -t psni_api .",
-                  "forwardAllArgs": false
-                },
-                "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api:{args.sha}",
-                "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api:{args.sha}"
-              ],
-              "parallel": false,
-              "forwardAllArgs": false
+            "commands": [
+              {
+                "command": "docker build -f apps/api/Dockerfile -t psni_api .",
+                "forwardAllArgs": false
+              },
+              "docker tag psni_api gcr.io/{args.projectid}/psnextv1-{args.branch}-api:{args.sha}",
+              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-api:{args.sha}"
+            ],
+            "parallel": false,
+            "forwardAllArgs": false
           }
         },
-        "k8s-deploy":{
-          "executor":"@nrwl/workspace:run-commands",
+        "k8s-deploy": {
+          "executor": "@nrwl/workspace:run-commands",
           "options": {
-              "commands": [
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
-                "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
-                {
-                  "command": "kubectl kustomize ./apps/api/k8s",
-                  "forwardAllArgs": false
-                },
-                "kubectl apply -k ./apps/api/k8s -n {args.branch}"
-              ],
-              "parallel": false
+            "commands": [
+              "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+              "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
+              "find ./apps/api/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+              {
+                "command": "kubectl kustomize ./apps/api/k8s",
+                "forwardAllArgs": false
+              },
+              "kubectl apply -k ./apps/api/k8s -n {args.branch}"
+            ],
+            "parallel": false
           }
         },
         "serve": {
@@ -157,7 +157,7 @@
           }
         },
         "build-docker": {
-          "executor":"@nrwl/workspace:run-commands",
+          "executor": "@nrwl/workspace:run-commands",
           "options": {
             "commands": [
               {
@@ -170,21 +170,21 @@
             "parallel": false
           }
         },
-        "k8s-deploy":{
-          "executor":"@nrwl/workspace:run-commands",
+        "k8s-deploy": {
+          "executor": "@nrwl/workspace:run-commands",
           "options": {
-              "commands": [
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
-                "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
-                {
-                  "command": "kubectl kustomize ./apps/data/k8s",
-                  "forwardAllArgs": false
-                },
-                "kubectl apply -k ./apps/data/k8s -n {args.branch}"
-              ],
-              "parallel": false,
-              "forwardAllArgs": false
+            "commands": [
+              "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+              "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+              "find ./apps/data/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
+              {
+                "command": "kubectl kustomize ./apps/data/k8s",
+                "forwardAllArgs": false
+              },
+              "kubectl apply -k ./apps/data/k8s -n {args.branch}"
+            ],
+            "parallel": false,
+            "forwardAllArgs": false
           }
         }
       }
@@ -211,6 +211,28 @@
           "outputs": ["{options.outputFile}"],
           "options": {
             "lintFilePatterns": ["apps/data-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    },
+    "models": {
+      "root": "libs/models",
+      "sourceRoot": "libs/models/src",
+      "projectType": "library",
+      "targets": {
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["libs/models/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/models"],
+          "options": {
+            "jestConfig": "libs/models/jest.config.js",
+            "passWithNoTests": true
           }
         }
       }

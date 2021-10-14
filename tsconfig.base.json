@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@psni/models": ["libs/models/src/index.ts"],
       "@psni/sharedui": ["libs/sharedui/src/index.ts"]
     }
   },

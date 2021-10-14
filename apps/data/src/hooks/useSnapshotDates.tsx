@@ -1,16 +1,16 @@
-import { IUser } from "@psni/models";
 import useSWR from "swr";
 import { fetcher } from "./fetcher";
+import * as fns from 'date-fns';
 
-export function useUsersList(date?: string) {
-  const {data=[], error} = useSWR<Array<IUser>>(`/api/users/${date?('date='+date):''}`, fetcher);
+export function useSnapshotDates() {
+  const {data=[], error} = useSWR<Array<string>>(`/api/users/snapshotdates`, fetcher);
 
   let uerror = error;
   if (error && error.response) {
     uerror = { message: error.response.data };
   }
   return {
-    users: data,
+    dates: data.map(d=>fns.parseISO(d)),
     isLoading: !error && !data,
     error: uerror
   };
