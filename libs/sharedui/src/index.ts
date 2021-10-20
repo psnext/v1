@@ -11,3 +11,4 @@ export * from './lib/tab-panel/tab-panel';
 export * from './lib/theme';
 export * from './lib/GlobalStylesOverride';
 export * from './lib/charts/PieChart';
+export * from './lib/charts/CalendarChart';

@@ -47,11 +47,13 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
   let i = 2;
   while (i < worksheet.rowCount) {
     const row = worksheet.getRow(i);
-    const status = headers.STATUS<0?'':row.getCell(headers.STATUS).value;
-    if (status!=='Active' && status!=='Active Contingent Assignment'){
-      i++;
-      continue;
-    }
+    // if (headers.STATUS>0) {
+    //   const status = headers.STATUS<0?'':row.getCell(headers.STATUS).value;
+    //   if (status!=='Active' && status!=='Active Contingent Assignment'){
+    //     i++;
+    //     continue;
+    //   }
+    // }
 
     const firstname = (headers.FIRST_NAME<0?null:row.getCell(headers.FIRST_NAME).value)||'';
     const middlename = (headers.MIDDLE_NAME<0?null:row.getCell(headers.MIDDLE_NAME).value)||'';
@@ -62,7 +64,7 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
     if (headers.GENDER!==-1) {
       details.gender = row.getCell(headers.GENDER).value;
     }
-    if (status==='Active Contingent Assignment'){
+    if (headers.PERSONTYPE!==-1 && row.getCell(headers.PERSONTYPE).value==='Contractor'){
       details.contractor=true;
     } else {
       details.contractor=false;
@@ -137,6 +139,9 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(req.file.buffer);
     const worksheet = workbook.getWorksheet('Base Data');
+    if (!worksheet) {
+      return res.status(400).json({error:'The file should contain "Base Data" sheet.'})
+    }
 
     log.debug(`File contains: ${worksheet.rowCount} rows`);
     const headerRow = worksheet.getRow(1);
@@ -145,6 +150,7 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
 
     const headers={};
     headers.STATUS      = headerRow.values.indexOf('STATUS');
+    headers.PERSONTYPE  = headerRow.values.indexOf('PERSONTYPE');
     headers.FIRST_NAME  = headerRow.values.indexOf('FIRST_NAME');
     headers.MIDDLE_NAME = headerRow.values.indexOf('MIDDLE_NAME');
     headers.LAST_NAME   = headerRow.values.indexOf('LAST_NAME');
@@ -160,21 +166,23 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
     headers.LASTPROMODATE = headerRow.values.indexOf('LAST_PROMOTION_DATE');
     headers.TEAM_NAME   = headerRow.values.indexOf('TEAM_NAME');
     // const CAREER_STAGE = headerRow.values.indexOf('CAREER_STAGE');
+    if (headers.EMAIL_ADDRESS<0) {
+      return res.status(400).json({error:'The file should contain "EMAIL_ADDRESS" column.'})
+    }
     jobid=crypto.randomUUID();
     log.info('Created upload job:'+jobid);
     cache.set(jobid,{jobid, status:'processing', completed:0, total: worksheet.rowCount-1 })
     res.json({jobid});
-    for await(let values of getUserValues(jobid, cache, log, date, worksheet, headers)) {
+    for await(const values of getUserValues(jobid, cache, log, date, worksheet, headers)) {
       try {
         pool.query('INSERT INTO clients (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [values.details.client]);
         const matches = await pool.query('SELECT id, name, email, picture, details from users WHERE lower(email) LIKE $1',
           [values.email]);
-        let user;
-        if (matches.rowCount>0) {
-          user=new User(matches.rows[0]);
-        } else {
-          user = await userRepo.create(values.email);
-        }
+        const user = (matches.rowCount>0) ?
+          new User(matches.rows[0]) :
+          await userRepo.create(values.email);
+
+        console.log(values);
         user.name = values.name;
         if (user.details.snapshotdate) {
           const lastuploaddate = fns.parseISO(user.details.snapshotdate);
@@ -185,10 +193,14 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
           user.details = {...user.details, ...values.details};
         }
         await userRepo.update(user);
+        console.log(user.id);
 
         let hr = await pool.query('SELECT id, snapshotdate, details from users_history WHERE id=$1 AND snapshotdate=$2', [user.id, values.details.snapshotdate]);
         if (hr.rowCount===0) {
+          console.log(`updating user ${user.email}`);
           hr=await pool.query('INSERT INTO users_history(id, snapshotdate) VALUES($1,$2) RETURNING id,snapshotdate,details', [user.id, values.details.snapshotdate]);
+        } else {
+          console.log(`${hr.rows[0].id} - ${hr.rows[0].snapshotdate}`)
         }
 
         const hdetails={...hr.rows[0].details,...values.details};
@@ -211,8 +223,8 @@ userApiRouter.get('/snapshotdates', async (req, res)=>{
   const {log} = req.app;
   const {pool} = req.app.db;
   try {
-    const results= await pool.query(`SELECT DISTINCT snapshotdate FROM users_history ORDER BY snapshotdate DESC;`);
-    return res.json(results.rows.map(r=>r.snapshotdate));
+    const results= await pool.query(`SELECT snapshotdate, COUNT(id) FROM users_history GROUP BY snapshotdate  ORDER BY snapshotdate DESC;`);
+    return res.json(results.rows);
   } catch (err) {
     log.error(err);
     return res.status(500).send({message:'Unable to fetch the snapshotdates'});
@@ -432,7 +444,8 @@ userApiRouter.post('/requestaccess', async (req, res)=>{
   try {
     let result = await pool.query(`SELECT id FROM users WHERE email=$1`,[email]);
     if (result.rowCount===0) {
-      return res.status(400).json({error:'Unknown user.'});
+      // return res.status(400).json({error:'Unknown user.'});
+      result = await pool.query(`INSERT INTO users(email) VALUES($1) RETURNING *`, [email]);
     }
 
     const code=generateCODE(6);

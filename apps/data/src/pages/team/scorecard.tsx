@@ -164,8 +164,6 @@ function ScoreCardRow({user}:any) {
 
 export default function ScoreCard() {
   const { user }= useUser('me');
-  const {dates}=useSnapshotDates();
-  const [selectedDate=new Date(),setSelectedDate] = useState(dates[0]);
   const {users, isLoading, error} = useUsersList();
   const [selectedUsers, setSelectedUsers] = useState<Array<any>>([]);
   const [expanded, setExpanded] = useState(false);

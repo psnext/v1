@@ -32,48 +32,59 @@ function UploadUsers(){
   const handleDateChange = (e:React.ChangeEvent<HTMLInputElement>)=>{ setDateValue(e.target.value); }
 
   const uploadSelectedFiles = async ()=>{
-    setState({...state, isBusy:true, error:'', progress:0, pmsg:''});
-    console.log(`uploading files`);
-    // Create a form and append image with additional fields
-    const form = new FormData();
-    form.append('usersdata', selectedFiles[0]);
-    const response = await axios.post(`/api/users/upload?date=${dateValue}`, form, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      onUploadProgress:(event)=>{
-        setState({...state,
-          progress: Math.round((100 * event.loaded) / event.total),
-        });
+    try {
+      setState({...state, isBusy:true, error:'', progress:0, pmsg:''});
+      console.log(`uploading files`);
+      // Create a form and append image with additional fields
+      const form = new FormData();
+      form.append('usersdata', selectedFiles[0]);
+      const response = await axios.post(`/api/users/upload?date=${dateValue}`, form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress:(event)=>{
+          setState({...state,
+            progress: Math.round((100 * event.loaded) / event.total),
+          });
+        }
+      });
+
+      if (response.status!==200) {
+        setState({...state, error:'Unable to upload', isBusy:false});
+        return;
       }
-    });
 
-    if (response.status!==200) {
-      setState({...state, error:'Unable to upload', isBusy:false});
-      return;
-    }
-
-    const data = response.data;
-    if (data.jobid){
-      const checkjob = setInterval(()=>{
-        axios.get(`/api/job/${data.jobid}`)
-          .then(res=>res.data)
-          .then(jobstatus=>{
-            if (jobstatus.status==='done'){
+      const data = response.data;
+      if (data.jobid){
+        const checkjob = setInterval(()=>{
+          axios.get(`/api/job/${data.jobid}`)
+            .then(res=>res.data)
+            .then(jobstatus=>{
+              if (jobstatus.status==='done'){
+                clearInterval(checkjob);
+                handleClose();
+              } else {
+                setState({...state, progress:(jobstatus.completed*100.0/jobstatus.total), pmsg:`${jobstatus.completed} of ${jobstatus.total}`});
+              }
+            })
+            .catch(err=>{
+              console.error(err);
               clearInterval(checkjob);
-              handleClose();
-            } else {
-              setState({...state, progress:(jobstatus.completed*100.0/jobstatus.total), pmsg:`${jobstatus.completed} of ${jobstatus.total}`});
-            }
-          })
-          .catch(err=>{
-            console.error(err);
-            clearInterval(checkjob);
-            setState({...state, error:'Unable to find the upload status', isBusy:false});
-          })
-      }, 1000);
-    } else {
-      handleClose();
+              setState({...state, error:'Unable to find the upload status', isBusy:false});
+            })
+        }, 1000);
+      } else {
+        handleClose();
+      }
+    } catch (err:any) {
+      console.error(err);
+      if (err.response) {
+        if (err.response.status===400) {
+          setState({...state, error:err.response.data.error, isBusy:false});
+          return;
+        }
+        setState({...state, error:'Unable to find the upload status. '+err.message, isBusy:false});
+      }
     }
     // setTimeout(()=>{
     //   setState({...state, open:false, isBusy: false, error:''});
