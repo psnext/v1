@@ -1,5 +1,4 @@
 import React from "react";
-import * as d3 from "d3";
 import DOM from './DOM';
 
 function entity(character) {

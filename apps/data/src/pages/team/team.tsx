@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Alert, AppBar, Backdrop, Box, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
+import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
+import { IUserCustomData } from "@psni/models";
 
-import { DataTable, Page, TabPanel } from "@psni/sharedui";
+import { DataTable, Page, TabPanel, UploadData} from "@psni/sharedui";
+import * as d3 from "d3";
 import { useMemo, useState } from "react";
 import { RouteComponentProps } from "react-router-dom";
+import { useUser } from "../../hooks/useUser";
 import { useUsersList } from "../../hooks/useUsersList";
 import ScoreCard from "./scorecard";
 
@@ -17,6 +20,7 @@ function a11yProps(suffix:string, index:number) {
 
 export function TeamPage (props:RouteComponentProps) {
   const [tabIndex, setTabIndex] = useState(1);
+  const { user }= useUser('me');
   const {users, isLoading, error} = useUsersList();
 
   const columns = useMemo(
@@ -70,6 +74,18 @@ export function TeamPage (props:RouteComponentProps) {
     setTabIndex(index);
   }
 
+  const OnJoinData = (data:Array<IUserCustomData>)=>{
+    const usrIndex = d3.group(users,u=>u.email);
+    data.forEach((cdata:IUserCustomData) => {
+      const usr=usrIndex.get(cdata.email);
+      if (usr) {
+        // if (!usr.details.custom) {
+        //   usr.details.custom
+        // }
+      }
+    });
+  }
+
   return <Page>
     <AppBar position="static">
       <Box sx={{minHeight:48}}/>
@@ -88,11 +104,16 @@ export function TeamPage (props:RouteComponentProps) {
     {error?<Alert color="error">{error}</Alert>:null}
     <div style={{height:'100%', display:'flex'}}>
       <TabPanel value={tabIndex} index={0}>
-        <ScoreCard/>
+        <ScoreCard user={user} users={users}/>
       </TabPanel>
       <TabPanel value={tabIndex} index={1} fullHeight>
         <Card sx={{mx:2, my:1}} elevation={0} variant="outlined">
-          <CardHeader title={'Users data..'}/>
+          <CardContent>
+            <Box justifyContent='space-between' alignItems='center' display="flex" width='100%' flexDirection='row'>
+              <span>Users data..</span>
+              <UploadData OnData={OnJoinData}/>
+            </Box>
+          </CardContent>
         </Card>
         <Box sx={{position: 'relative', width:'100%', height:'100%'}}>
           <Box sx={{px:2, position:'absolute', top:0, bottom:0, left:0, right:0}}>

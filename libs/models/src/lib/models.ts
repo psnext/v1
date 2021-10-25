@@ -1,4 +1,12 @@
 
+export interface IUserCustomData {
+  email:string,
+  timestamp:Date,
+  data_type:string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  details:any
+}
+
 export interface IUserDetails {
   capability?: string
   career_stage?: string
@@ -16,8 +24,9 @@ export interface IUserDetails {
 
 export interface IUser {
   id: string
-  name: string
-  email?: string
+  email: string
+  name?: string
   picture?: string
-  details: IUserDetails
+  details: IUserDetails,
+  customdata?:Map<string, Array<any>>
 }

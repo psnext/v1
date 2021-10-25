@@ -182,7 +182,6 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
           new User(matches.rows[0]) :
           await userRepo.create(values.email);
 
-        console.log(values);
         user.name = values.name;
         if (user.details.snapshotdate) {
           const lastuploaddate = fns.parseISO(user.details.snapshotdate);
@@ -193,14 +192,13 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
           user.details = {...user.details, ...values.details};
         }
         await userRepo.update(user);
-        console.log(user.id);
 
         let hr = await pool.query('SELECT id, snapshotdate, details from users_history WHERE id=$1 AND snapshotdate=$2', [user.id, values.details.snapshotdate]);
         if (hr.rowCount===0) {
-          console.log(`updating user ${user.email}`);
+          log.debug(`updating user ${user.email}`);
           hr=await pool.query('INSERT INTO users_history(id, snapshotdate) VALUES($1,$2) RETURNING id,snapshotdate,details', [user.id, values.details.snapshotdate]);
         } else {
-          console.log(`${hr.rows[0].id} - ${hr.rows[0].snapshotdate}`)
+          log.debug(`${hr.rows[0].id} - ${hr.rows[0].snapshotdate}`)
         }
 
         const hdetails={...hr.rows[0].details,...values.details};

@@ -1,3 +1,4 @@
+export * from './lib/upload-data/upload-data';
 export * from './lib/circular-progress-with-label/circular-progress-with-label';
 export * from './lib/summay-widget/summay-widget';
 export * from './lib/multi-select-list/multi-select-list';

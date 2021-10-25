@@ -35,7 +35,7 @@ function UploadUsers(){
     try {
       setState({...state, isBusy:true, error:'', progress:0, pmsg:''});
       console.log(`uploading files`);
-      // Create a form and append image with additional fields
+      // Create a form and append file with additional fields
       const form = new FormData();
       form.append('usersdata', selectedFiles[0]);
       const response = await axios.post(`/api/users/upload?date=${dateValue}`, form, {

@@ -35,7 +35,6 @@ function SelectUsers(props: { users: Array<any>; selected: Array<any>; onChange:
 
   const handleDelete=useCallback((u:any)=>{
     const idx = selected.indexOf(u);
-    if (idx===0) return;
     if (idx!==-1) {
       const newlist = [...selected];
       newlist.splice(idx,1);
@@ -48,7 +47,7 @@ function SelectUsers(props: { users: Array<any>; selected: Array<any>; onChange:
   }
 
   return (<PopupPanel buttonContent={<div>
-        {selected.map((u:any, i:number)=><Chip key={u?.id||'0'} label={u?.name} onDelete={i?()=>handleDelete(u):undefined}/>)}
+        {selected.map((u:any, i:number)=><Chip key={u?.id||'0'} label={u?.name} onDelete={()=>handleDelete(u)}/>)}
         </div>}>
           <Card sx={{p:2, minWidth:200}}>
             <MultiSelectList
@@ -81,7 +80,7 @@ function uniqueValues(values:Array<string>, keys:Array<string|null>) {
   return [...uv.values()];
 }
 
-function ScoreCardRow({user}:any) {
+function ScoreCardRow({user, onClickUser}:any) {
   const statContainer:any = {marginBottom:'0.5em', display:'flex', flexDirection:'column', alignItems:'center'};
   const stat:any = {minWidth:48, height:54,fontSize:24, display:'flex', alignItems:'center', justifyContent:'center'};
   const {orgCount, directsCount, conCount, maleCount, totCurExp, leverage}=user.summary;
@@ -93,7 +92,7 @@ function ScoreCardRow({user}:any) {
   return (<>
   <Grid container direction="row" justifyContent="flex-start" alignItems="flex-start" style={{marginBottom:'1em'}}>
     <Grid item xs={12} sm={12} md={2} style={{...statContainer, alignItems: 'flex-start'}}>
-      <div style={{...stat, alignItems:'flex-start', textAlign:'start', cursor:'pointer'}}>
+      <div style={{...stat, alignItems:'flex-start', textAlign:'start', cursor:'pointer'}} onClick={()=>{ onClickUser&&onClickUser(user)}}>
         <ListItemText
           primary={user.name}
           secondary={user.details?.title}/>
@@ -162,9 +161,7 @@ function ScoreCardRow({user}:any) {
   </>);
 }
 
-export default function ScoreCard() {
-  const { user }= useUser('me');
-  const {users, isLoading, error} = useUsersList();
+export default function ScoreCard({user, users=[]}:{user?:IUser, users?:Array<IUser>}) {
   const [selectedUsers, setSelectedUsers] = useState<Array<any>>([]);
   const [expanded, setExpanded] = useState(false);
 
@@ -212,6 +209,10 @@ export default function ScoreCard() {
     setExpanded(!expanded);
   };
 
+  const handleOnUserClick = (u:IUser) => {
+    setSelectedUsers([u]);
+  }
+
   return <Card sx={{p:2}}>
   <CardHeader
     action={
@@ -219,7 +220,7 @@ export default function ScoreCard() {
         <MoreVertIcon />
       </IconButton>
     }
-    title={<SelectUsers users={users} selected={selectedUsers} onChange={(l:any)=>setSelectedUsers(l)}/>}
+    title={<SelectUsers users={users} selected={selectedUsers} onChange={(l:any)=>l.length>0?setSelectedUsers(l):setSelectedUsers([user])}/>}
     subheader={ user?fns.format( fns.parse(user.details.snapshotdate||'','yyyy-MM-dd',new Date()), 'do MMM yy'):null} />
 
   <CardContent>
@@ -251,7 +252,7 @@ export default function ScoreCard() {
   <Collapse in={expanded} timeout="auto" unmountOnExit>
     <CardContent>
     {selectedUsers.map(su=>su.summary.directs.sort((u1:any,u2:any)=>u2.summary.orgCount-u1.summary.orgCount).map((u:IUser)=>{
-      return <ScoreCardRow key={u.id} user={u}/>
+      return <ScoreCardRow key={u.id} user={u} onClickUser={handleOnUserClick}/>
     }))}
     </CardContent>
   </Collapse>
