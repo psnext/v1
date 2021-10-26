@@ -30,7 +30,7 @@ steps:
   args:
     - -c
     - |
-      npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA)
+      npm run nx -- affected:build --base=$(cat LAST_BUILD_COMMIT_SHA) --prod
 # setp 2 build image
 - id: deploy
   waitFor:
