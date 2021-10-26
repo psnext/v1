@@ -5,7 +5,7 @@ import { Card, CardActions, CardContent, CardHeader, Chip, Collapse, Grid, IconB
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useUser } from "../../hooks/useUser";
 import { useUsersList } from "../../hooks/useUsersList";
-import { PopupPanel, MultiSelectList, CircularProgressWithLabel, PopupPieChart } from "@psni/sharedui";
+import { PopupPanel, MultiSelectList, CircularProgressWithLabel, PopupPieChart, uniqueValues } from "@psni/sharedui";
 import * as d3 from "d3";
 import { IUser } from "@psni/models";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -67,18 +67,6 @@ const db={
   career_stage_list:["Intern", "Junior Associate", "Associate", "Senior Associate", "Manager/Specialist",null, "Sr. Manager/Sr. Specialist", "Director/Expert", "VP/Fellow", "Executive"]
 };
 
-function uniqueValues(values:Array<string>, keys:Array<string|null>) {
-  const uv=new Map();
-  keys.forEach(c=>uv.set(c,{name:c, value:0}));
-
-  values.forEach(v=>{
-    const s=uv.get(v)||{name:v, value:0, percent:0};
-    s.value++;
-    s.percent=Math.round(100*s.value/values.length)/100;
-    uv.set(v,s);
-  });
-  return [...uv.values()];
-}
 
 function ScoreCardRow({user, onClickUser}:any) {
   const statContainer:any = {marginBottom:'0.5em', display:'flex', flexDirection:'column', alignItems:'center'};

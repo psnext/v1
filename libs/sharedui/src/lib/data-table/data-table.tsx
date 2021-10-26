@@ -8,7 +8,23 @@ import Box from '@mui/material/Box';
 import { AddBoxTwoTone, ArrowDropDownSharp, ArrowRightSharp, AutorenewRounded, Close, FilterListRounded, IndeterminateCheckBoxTwoTone, ViewColumnRounded } from '@mui/icons-material';
 import { Badge, Button, Card, CardContent, Grid, IconButton, ListItem, ListItemButton, ListItemText, MenuItem, Select, Stack, Switch, TextField, Typography } from '@mui/material';
 import d3 from 'd3';
-import { PopupPanel } from '@psni/sharedui';
+import PopupPanel from '../popup-panel/popup-panel';
+
+
+
+
+export function uniqueValues(values:Array<string>, keys:Array<string|null>) {
+  const uv=new Map();
+  keys.forEach(c=>uv.set(c,{name:c, value:0}));
+
+  values.forEach(v=>{
+    const s=uv.get(v)||{name:v, value:0, percent:0};
+    s.value++;
+    s.percent=Math.round(100*s.value/values.length)/100;
+    uv.set(v,s);
+  });
+  return [...uv.values()];
+}
 
 export const scrollbarWidth = () => {
   // thanks too https://davidwalsh.name/detect-scrollbar-width

@@ -2,7 +2,7 @@
 import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
 import { IUserCustomData } from "@psni/models";
 
-import { DataTable, Page, TabPanel, UploadData} from "@psni/sharedui";
+import { DataTable, Page, PopupPieChart, TabPanel, uniqueValues, UploadData} from "@psni/sharedui";
 import * as d3 from "d3";
 import { useMemo, useState } from "react";
 import { RouteComponentProps } from "react-router-dom";
@@ -17,6 +17,10 @@ function a11yProps(suffix:string, index:number) {
     'aria-controls': `${suffix}-tabpanel-${index}`,
   };
 }
+
+const db={
+  career_stage_list:["Intern", "Junior Associate", "Associate", "Senior Associate", "Manager/Specialist",null, "Sr. Manager/Sr. Specialist", "Director/Expert", "VP/Fellow", "Executive"]
+};
 
 export function TeamPage (props:RouteComponentProps) {
   const [tabIndex, setTabIndex] = useState(1);
@@ -49,6 +53,17 @@ export function TeamPage (props:RouteComponentProps) {
       {
         Header: 'Career Stage',
         accessor: 'details.career_stage',
+        aggregate:(v:any)=>uniqueValues(v,db.career_stage_list),
+        Aggregated:({value}:any)=><PopupPieChart data={value}
+          options={{width:42, height:42}}
+          popupOptions={{width:350, height:350, showLabels:true}}/>
+      },
+      {
+        Header: 'Contractor',
+        accessor: 'details.contractor',
+        Cell:({value}:any)=>(`${value?'☑️':''}`),
+        aggregate:((v:any)=>v.filter((v:any)=>v).length),
+        Aggregated:({value}:any)=><span>&#8721;{value}</span>,
       },
       {
         Header: 'Capability',

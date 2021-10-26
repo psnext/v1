@@ -7,6 +7,9 @@ export interface IUserCustomData {
   details:any
 }
 
+export interface ICustomDataSummary {
+  rawdata:Map<string,any>,
+}
 export interface IUserDetails {
   capability?: string
   career_stage?: string
