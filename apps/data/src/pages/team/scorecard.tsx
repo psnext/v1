@@ -54,6 +54,7 @@ function SelectUsers(props: { users: Array<any>; selected: Array<any>; onChange:
               value={selected}
               options={users}
               getOptionLabel={(o:any)=>o.name}
+              getOptionSubLabel={(o:any)=>o.details.title}
               onChange={handleChange}
               itemProps={{sx:{px:0}}}
             />

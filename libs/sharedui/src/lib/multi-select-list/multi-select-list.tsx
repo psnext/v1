@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
@@ -44,11 +45,11 @@ const ListboxComponent = React.forwardRef(function ListboxComponent(props:any, r
   const theme = useTheme();
   const smUp = useMediaQuery(theme.breakpoints.up('sm'), { noSsr: true });
   const itemCount = itemData.length;
-  const itemSize = smUp ? 36 : 48;
+  const itemSize = smUp ? 48 : 52;
 
   const getChildSize = (child:any) => {
     if (React.isValidElement(child) && child.type === ListSubheader) {
-      return 48;
+      return 52;
     }
 
     return itemSize;
@@ -86,17 +87,18 @@ const ListboxComponent = React.forwardRef(function ListboxComponent(props:any, r
 
 
 /* eslint-disable-next-line */
-export interface MultiSelectListProps {
-  options:Array<any>,
-  value:Array<any>,
-  getOptionLabel:any,
+export interface MultiSelectListProps<D extends object> {
+  options:Array<D>,
+  value:Array<D>,
+  getOptionLabel:(o:D)=>any,
+  getOptionSubLabel?:any,
   onChange:any,
   itemProps:any,
   textProps?:any
 }
 
-export function MultiSelectList(props: MultiSelectListProps) {
-  const {options, value=[], getOptionLabel=(o:any)=>o, onChange=console.log, itemProps={}, textProps={}} = props;
+export function MultiSelectList<D extends object>(props: MultiSelectListProps<D>) {
+  const {options, value=[], getOptionLabel=(o:any)=>o, getOptionSubLabel=(o:any)=>null, onChange=console.log, itemProps={}, textProps={}} = props;
   const [filterValue, setFilterValue] = React.useState('');
 
   const handleFilterValueChange = (e: { target: { value: React.SetStateAction<string>; }; }) =>{
@@ -125,7 +127,7 @@ export function MultiSelectList(props: MultiSelectListProps) {
         .filter((o:any)=>getOptionLabel(o).toLowerCase().indexOf(filterValue.toLowerCase())!==-1)
         .map((option:any, i:number)=><MenuItem key={option.id||i} sx={itemProps.sx}>
         <Checkbox checked={value.indexOf(option)!==-1} onChange={()=>toggleSelected(option)}/>
-        <ListItemText primary={getOptionLabel(option)}
+        <ListItemText primary={getOptionLabel(option)} secondary={getOptionSubLabel(option)}
           onClick={()=>toggleSelected(option)}/>
       </MenuItem>)}
     </ListboxComponent>

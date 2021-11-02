@@ -17,7 +17,8 @@
     "paths": {
       "@psni/models": ["libs/models/src/index.ts"],
       "@psni/sharedui": ["libs/sharedui/src/index.ts"]
-    }
+    },
+    "typeRoots": ["node_modules/@types", "@types"]
   },
   "exclude": ["node_modules", "tmp"]
 }

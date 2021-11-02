@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
-import { IUserCustomData } from "@psni/models";
+import { IUser, IUserCustomData } from "@psni/models";
 
-import { DataTable, Page, PopupPieChart, TabPanel, uniqueValues, UploadData} from "@psni/sharedui";
+import { DataTable, Page, PopupPieChart, SelectColumnFilter, TabPanel, uniqueValues, UploadData} from "@psni/sharedui";
 import * as d3 from "d3";
 import { useMemo, useState } from "react";
 import { RouteComponentProps } from "react-router-dom";
@@ -41,6 +41,7 @@ export function TeamPage (props:RouteComponentProps) {
         Header: 'Email',
         accessor: 'email',
         aggregate: 'count',
+        filter: 'text',
         Aggregated:(d:any)=>{
           const emails= d.cell.row.leafRows.map((v:any)=>v.original.email).join(',');
           return <a href={`mailto:${emails}`}>️✉ {d.value}</a>
@@ -49,14 +50,19 @@ export function TeamPage (props:RouteComponentProps) {
       {
         Header: 'Title',
         accessor: 'details.title',
+        Filter: SelectColumnFilter,
+        filter: 'text',
       },
       {
         Header: 'Career Stage',
+        type:'string',
         accessor: 'details.career_stage',
         aggregate:(v:any)=>uniqueValues(v,db.career_stage_list),
         Aggregated:({value}:any)=><PopupPieChart data={value}
           options={{width:42, height:42}}
-          popupOptions={{width:350, height:350, showLabels:true}}/>
+          popupOptions={{width:350, height:350, showLabels:true}}/>,
+        Filter: SelectColumnFilter,
+        filter: 'includes',
       },
       {
         Header: 'Contractor',
@@ -64,22 +70,27 @@ export function TeamPage (props:RouteComponentProps) {
         Cell:({value}:any)=>(`${value?'☑️':''}`),
         aggregate:((v:any)=>v.filter((v:any)=>v).length),
         Aggregated:({value}:any)=><span>&#8721;{value}</span>,
+        filter: 'text',
       },
       {
         Header: 'Capability',
         accessor: 'details.capability',
+        filter: 'text',
       },
       {
         Header: 'Client',
         accessor: 'details.client',
+        filter: 'text',
       },
       {
         Header: 'Team',
         accessor: 'details.team',
+        filter: 'text',
       },
       {
         Header: 'Manager',
         accessor: 'details.supervisor_name',
+        filter: 'text',
       }
     ],
     []

@@ -8,7 +8,8 @@ export interface IUserCustomData {
 }
 
 export interface ICustomDataSummary {
-  rawdata:Map<string,any>,
+  rawdata:Array<any>,
+
 }
 export interface IUserDetails {
   capability?: string

@@ -1,17 +1,69 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import { useCallback, useMemo, useState } from 'react';
-import './data-table.module.css';
+import "./react-table-config.d.ts";
+import { useCallback, useMemo, useState} from 'react';
 import * as rt from 'react-table';
 import * as rw from 'react-window';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { AddBoxTwoTone, ArrowDropDownSharp, ArrowRightSharp, AutorenewRounded, Close, FilterListRounded, IndeterminateCheckBoxTwoTone, ViewColumnRounded } from '@mui/icons-material';
-import { Badge, Button, Card, CardContent, Grid, IconButton, ListItem, ListItemButton, ListItemText, MenuItem, Select, Stack, Switch, TextField, Typography } from '@mui/material';
-import d3 from 'd3';
+import {Button, ButtonGroup, Card, CardContent, Grid, IconButton, ListItem, ListItemButton, ListItemText, MenuItem, Select, Stack, Switch, TextField, Typography } from '@mui/material';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import PopupPanel from '../popup-panel/popup-panel';
+import {matchSorter} from 'match-sorter';
 
 
 
+// Define a default UI for filtering
+function DefaultColumnFilter({
+  column: { Header, filterValue, preFilteredRows, setFilter },
+}:any) {
+  const count = preFilteredRows.length
+
+  return (
+    <TextField variant="outlined" size="small" fullWidth focused
+      value={filterValue || ''}
+      onChange={e => {
+        setFilter(e.target.value || undefined) // Set undefined to remove the filter entirely
+      }}
+      placeholder={`${Header} (${count})...`}
+    />
+  )
+}
+
+// This is a custom filter UI for selecting
+// a unique option from a list
+export function SelectColumnFilter({
+  column: { filterValue, setFilter, preFilteredRows, id },
+}:any) {
+  // Calculate the options for filtering
+  // using the preFilteredRows
+  const options = useMemo(() => {
+    const options = new Set()
+    preFilteredRows.forEach((row:any) => {
+      options.add(row.values[id])
+    })
+    return [...options.values()]
+  }, [id, preFilteredRows])
+
+  // Render a multi-select box
+  return (
+    <Select fullWidth sx={{minWidth:'25ch'}}
+      value={filterValue}
+      onChange={e => {
+        setFilter(e.target.value || undefined)
+      }}
+    >
+      <MenuItem value="">All</MenuItem>
+      {options.map((option:any, i:number) => (
+        <MenuItem key={i} value={option}>
+          {option}
+        </MenuItem>
+      ))}
+    </Select>
+  )
+}
 
 export function uniqueValues(values:Array<string>, keys:Array<string|null>) {
   const uv=new Map();
@@ -68,7 +120,39 @@ const StyledTableCell = styled('div')(({theme }) => ({
   }
 }));
 
+function fuzzyTextFilterFn(rows:any, id:any, filterValue:rt.FilterValue) {
+  return matchSorter(rows, filterValue, { keys: [(row:any) => row.values[id]] })
+}
 
+// Let the table remove the filter if the string is empty
+fuzzyTextFilterFn.autoRemove = (val:any) => !val
+
+// Define a default UI for filtering
+function GlobalFilter({
+  preGlobalFilteredRows,
+  globalFilter,
+  setGlobalFilter,
+}:any) {
+  const count = preGlobalFilteredRows.length
+  const [value, setValue] = useState(globalFilter)
+  const onChange = rt.useAsyncDebounce(value => {
+    setGlobalFilter(value || undefined)
+  }, 200)
+
+  return (
+    <Stack direction="row" sx={{width:'100%', margin:"0.25em 0"}} alignItems="center">
+      <TextField size="small" fullWidth
+        value={value || ""}
+        onChange={e => {
+          setValue(e.target.value);
+          onChange(e.target.value);
+        }}
+        placeholder={`Search ${count} records...`}
+        variant="outlined"
+      />
+    </Stack>
+  )
+}
 
 function renderColumnSelectionRow(props:any) {
   const { index, style } = props;
@@ -81,23 +165,45 @@ function renderColumnSelectionRow(props:any) {
     </ListItem>
   );
 }
-
-export interface DataTableProps {
-  columns:rt.Column[],
-  data:Array<object>,
+export interface DataTableProps<D extends object={}> {
+  columns:rt.Column<D>[],
+  data:Array<D>,
   initialState?: object,
   height?:number
 }
 
-export function DataTable(props: DataTableProps) {
+export function DataTable<D extends object>(props: DataTableProps) {
     const { columns, data, initialState, height=500 } = props;
     // Use the state and functions returned from useTable to build your UI
+    const filterTypes = useMemo(
+      () => {
+        const filterTypes: rt.FilterTypes<D> = {
+        // Add a new fuzzyTextFilterFn filter type.
+        fuzzyText: fuzzyTextFilterFn,
+        // Or, override the default text filter to use
+        // "startWith"
+        text: (rows:Array<rt.Row<D>>, columnIds: Array<rt.IdType<D>>, filterValue:rt.FilterValue) => {
+          return rows.filter((row:rt.Row<D>) => {
+            const rowValue = row.values[columnIds[0]]
+            return rowValue !== undefined
+              ? String(rowValue)
+                  .toLowerCase()
+                  .startsWith(String(filterValue).toLowerCase())
+              : true
+          })
+        },
+      }
+      return filterTypes;
+    },
+      []
+    )
 
     const defaultColumn = useMemo(
       () => ({
         minWidth: 30,
         width: 150,
         maxWidth: 400,
+        Filter: DefaultColumnFilter
       }),
       []
     )
@@ -110,30 +216,37 @@ export function DataTable(props: DataTableProps) {
       headerGroups,
       rows,
       allColumns,
+      setAllFilters,
       visibleColumns,
       totalColumnsWidth,
       toggleHideColumn,
       prepareRow,
       state,
-    } = rt.useTable(
+      preGlobalFilteredRows,
+      setGlobalFilter,
+    }:any = rt.useTable(
       {
         columns,
         data,
         defaultColumn,
         initialState,
       },
+      rt.useFilters,
+      rt.useGlobalFilter,
       rt.useGroupBy,
+      rt.useSortBy,
       rt.useExpanded,
       rt.useBlockLayout,
       rt.useResizeColumns,
     )
 
     const handleReset = () => {
-      allColumns.forEach(c=>{
-        if (!visibleColumns.find(vc=>vc.id===c.id)) {
+      allColumns.forEach((c:rt.Column)=>{
+        if (!visibleColumns.find((vc:rt.Column)=>vc.id===c.id) && c.id) {
           toggleHideColumn(c.id);
         }
       })
+      setAllFilters([]);
     };
 
     const RenderRow = useCallback(
@@ -185,11 +298,11 @@ export function DataTable(props: DataTableProps) {
         <PopupPanel buttonContent={<Button color="primary" size="small"><ViewColumnRounded/> Columns</Button>}>
           <Card>
             <CardContent>
-              {allColumns.map((c,i)=>(
+              {allColumns.map((c:rt.Column,i:number)=>(
                 <ListItem key={i} disablePadding>
                   <ListItemButton onClick={()=>{toggleHideColumn(c.id as string)}}>
                   <Switch edge="start"
-                    checked={visibleColumns.find(vc=>vc.id===c.id)?true:false}
+                    checked={visibleColumns.find((vc:rt.Column)=>vc.id===c.id)?true:false}
                     inputProps={{
                       'aria-labelledby': `switch-hidecolumn-label-${c.Header}`,
                     }}
@@ -198,30 +311,38 @@ export function DataTable(props: DataTableProps) {
                   </ListItemButton>
                 </ListItem>
               ))}
+
             </CardContent>
           </Card>
         </PopupPanel>
         <PopupPanel buttonContent={<Button color="primary" size="small"><FilterListRounded/> Filters</Button>}>
           <Card sx={{width:'470px', maxWidth:'100%'}}>
             <CardContent>
-              <Grid container sx={{alignItems:'flex-end'}}>
-                <Grid item xs={12} sm={1}><IconButton><Close/></IconButton></Grid>
-                <Grid item xs={12} sm={4}><Select variant='standard' fullWidth placeholder="Select Column">
-                  {allColumns.map(c=><MenuItem key={c.id}>{c.Header}</MenuItem>)}
-                </Select></Grid>
-                <Grid item xs={12} sm={3}><Select variant='standard' fullWidth placeholder="Select Column">
-                  {allColumns.map(c=><MenuItem key={c.id}>{c.Header}</MenuItem>)}
-                </Select></Grid>
-                <Grid item xs={12} sm={4}><TextField fullWidth variant='standard' label='Value'/></Grid>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Typography variant="button">Filter</Typography>
+                <Button>Reset</Button>
+              </Stack>
+              <Grid container sx={{alignItems:'flex-end'}} spacing={1}>
+                {allColumns.map((column:any)=><Grid item xs={12} sm={6}>
+                  <Box>
+                    {column.canFilter ? column.render('Filter') : null}
+                  </Box>
+                </Grid>)}
               </Grid>
             </CardContent>
           </Card>
         </PopupPanel>
         <Button color="primary" size="small" onClick={handleReset}><AutorenewRounded/> Reset</Button>
+        <Box mx={2}/>
+        <GlobalFilter
+          preGlobalFilteredRows={preGlobalFilteredRows}
+          globalFilter={state.globalFilter}
+          setGlobalFilter={setGlobalFilter}/>
       </Stack>
+      <Box my={2}/>
       <StyledTable {...getTableProps()}>
         <div>
-          {headerGroups.map((headerGroup:any, i) => (
+          {headerGroups.map((headerGroup:rt.HeaderGroup, i:number) => (
             <StyledTableRow key={i} style={{minWidth:'100%', width:'max-content', display:'flex'}}>
               {headerGroup.headers.map((column:any) => (
                 <StyledTableCell key={column.id} style={{width:column.width}}>
@@ -231,8 +352,28 @@ export function DataTable(props: DataTableProps) {
                       {column.isGrouped ? <AddBoxTwoTone /> : <IndeterminateCheckBoxTwoTone/>}
                     </span>
                   ) : null}
-                  {column.render('Header')}
-
+                  <PopupPanel buttonContent={column.render('Header')}>
+                    <Card sx={{maxWidth:'100%'}}>
+                      <CardContent>
+                        <Stack spacing={1}>
+                        <Typography variant="subtitle2">Sort {column.Header}</Typography>
+                        <ButtonGroup color="primary" aria-label="outlined primary button group">
+                          <Button startIcon={<ArrowDownwardIcon/>} variant={column.isSorted&&!column.isSortedDesc?'contained':'outlined'}
+                            onClick={()=>column.toggleSortBy(false)}
+                          >
+                            Ascending</Button>
+                          <Button startIcon={<ArrowUpwardIcon/>} variant={column.isSorted&&column.isSortedDesc?'contained':'outlined'}
+                            onClick={()=>column.toggleSortBy(true)}
+                          >
+                            Descending</Button>
+                        </ButtonGroup>
+                        <hr/>
+                        <Typography variant="subtitle2">Filter {column.Header}</Typography>
+                        {column.canFilter ? column.render('Filter') : null}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </PopupPanel>
                   {/* Use column.getResizerProps to hook up the events correctly */}
                   <Box
                     sx={{

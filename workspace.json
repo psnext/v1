@@ -81,7 +81,8 @@
             "passWithNoTests": true
           }
         }
-      }
+      },
+      "tags": []
     },
     "data": {
       "root": "apps/data",
@@ -187,7 +188,8 @@
             "forwardAllArgs": false
           }
         }
-      }
+      },
+      "tags": []
     },
     "data-e2e": {
       "root": "apps/data-e2e",
@@ -213,7 +215,9 @@
             "lintFilePatterns": ["apps/data-e2e/**/*.{js,ts}"]
           }
         }
-      }
+      },
+      "tags": [],
+      "implicitDependencies": ["data"]
     },
     "models": {
       "root": "libs/models",
@@ -235,7 +239,8 @@
             "passWithNoTests": true
           }
         }
-      }
+      },
+      "tags": []
     },
     "sharedui": {
       "root": "libs/sharedui",
@@ -257,27 +262,8 @@
             "passWithNoTests": true
           }
         }
-      }
-    }
-  },
-  "cli": {
-    "defaultCollection": "@nrwl/react"
-  },
-  "generators": {
-    "@nrwl/react": {
-      "application": {
-        "style": "css",
-        "linter": "eslint",
-        "babel": true
       },
-      "component": {
-        "style": "css"
-      },
-      "library": {
-        "style": "css",
-        "linter": "eslint"
-      }
+      "tags": []
     }
-  },
-  "defaultProject": "api"
+  }
 }
