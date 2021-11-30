@@ -9,7 +9,6 @@ export interface IUserCustomData {
 
 export interface ICustomDataSummary {
   rawdata:Array<any>,
-
 }
 export interface IUserDetails {
   capability?: string

@@ -102,6 +102,7 @@ export function TeamPage (props:RouteComponentProps) {
 
   const OnJoinData = (data:Array<IUserCustomData>)=>{
     const usrIndex = d3.group(users,u=>u.email);
+    console.log(data);
     data.forEach((cdata:IUserCustomData) => {
       const usr=usrIndex.get(cdata.email);
       if (usr) {

@@ -120,6 +120,19 @@ const StyledTableCell = styled('div')(({theme }) => ({
   }
 }));
 
+const includes = function includes(rows:any, ids:any, filterValue:rt.FilterValue) {
+  return rows.filter(function (row:any) {
+    return ids.some(function (id:any) {
+      const rowValue = row.values[id]||'';
+      return rowValue.includes(filterValue);
+    });
+  });
+};
+
+includes.autoRemove = function (val:any) {
+  return !val || !val.length;
+};
+
 function fuzzyTextFilterFn(rows:any, id:any, filterValue:rt.FilterValue) {
   return matchSorter(rows, filterValue, { keys: [(row:any) => row.values[id]] })
 }
@@ -178,6 +191,7 @@ export function DataTable<D extends object>(props: DataTableProps) {
     const filterTypes = useMemo(
       () => {
         const filterTypes: rt.FilterTypes<D> = {
+        includes,
         // Add a new fuzzyTextFilterFn filter type.
         fuzzyText: fuzzyTextFilterFn,
         // Or, override the default text filter to use
@@ -203,12 +217,21 @@ export function DataTable<D extends object>(props: DataTableProps) {
         minWidth: 30,
         width: 150,
         maxWidth: 400,
+        filter: "fuzzyText",
         Filter: DefaultColumnFilter
       }),
       []
     )
 
     const scrollBarSize = useMemo(() => scrollbarWidth(), [])
+
+    const tableOptions:any = {
+      columns,
+      data,
+      defaultColumn,
+      initialState,
+      filterTypes
+    };
 
     const {
       getTableProps,
@@ -218,19 +241,13 @@ export function DataTable<D extends object>(props: DataTableProps) {
       allColumns,
       setAllFilters,
       visibleColumns,
-      totalColumnsWidth,
       toggleHideColumn,
       prepareRow,
       state,
       preGlobalFilteredRows,
       setGlobalFilter,
     }:any = rt.useTable(
-      {
-        columns,
-        data,
-        defaultColumn,
-        initialState,
-      },
+      tableOptions,
       rt.useFilters,
       rt.useGlobalFilter,
       rt.useGroupBy,
@@ -320,7 +337,7 @@ export function DataTable<D extends object>(props: DataTableProps) {
             <CardContent>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Typography variant="button">Filter</Typography>
-                <Button>Reset</Button>
+                <Button onClick={()=>setAllFilters([])}>Reset</Button>
               </Stack>
               <Grid container sx={{alignItems:'flex-end'}} spacing={1}>
                 {allColumns.map((column:any)=><Grid item xs={12} sm={6}>
