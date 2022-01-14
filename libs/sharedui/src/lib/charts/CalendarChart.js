@@ -1,8 +1,7 @@
 
 import React from "react";
 import * as d3 from "d3";
-import { Popover } from '@mui/material';
-import { Box } from "@mui/system";
+import { Box, Popover } from '@mui/material';
 import Swatch from "./Swatch";
 
 export const CalendarChart = ({data=[], onClick, options={}, sx={}})=>{
@@ -15,13 +14,13 @@ export const CalendarChart = ({data=[], onClick, options={}, sx={}})=>{
 
 
   React.useEffect(() => {
-    const years = d3.groups(data, d => d.date.getUTCFullYear()).reverse();
-
+    const years = d3.groups(data, d => d.date.getUTCFullYear())//.reverse();
+    console.log(years);
     const timeWeek = weekday === "sunday" ? d3.utcSunday : d3.utcMonday;
     const countDay = weekday === "sunday" ? (i) => i : (i) => (i + 6) % 7;
 
     const cellSize = 17;
-    const height = (17*9)*years.length;
+    const height = (cellSize*9);
 
     function pathMonth(t) {
       const n = weekday === "weekday" ? 5 : 7;
@@ -49,7 +48,7 @@ export const CalendarChart = ({data=[], onClick, options={}, sx={}})=>{
     })()
 
 
-    const year = svg.selectAll("g")
+    const year = svg.selectAll('g.first')
     .data(years)
     .join("g")
       .attr("transform", (_d, i) => `translate(40.5,${height * i + cellSize * 1.5})`);
@@ -111,6 +110,7 @@ export const CalendarChart = ({data=[], onClick, options={}, sx={}})=>{
 
   return <Box sx={sx}>
     <svg ref={svgRef} width={'100%'} height={'100%'} onClick={onClick}>
+      <g class='first'></g>
     </svg>
   </Box>;
 }

@@ -5,12 +5,14 @@ export default class Permission implements IModel {
   readonly #name: string;
   #display_name: string|null;
   #description: string|null;
+  #condition: string|null;
 
-  constructor (data:{id: string, name:string, display_name?:string, description?:string}) {
+  constructor (data:{id: string, name:string, display_name?:string, description?:string, condition?:string}) {
     this.#id = data.id;
     this.#name = data.name;
     this.display_name = data.display_name||null;
     this.description = data.description||null;
+    this.#condition = data.condition||null;
   }
 
   get id():string {
@@ -19,6 +21,10 @@ export default class Permission implements IModel {
 
   get name():string {
     return this.#name;
+  }
+
+  get condition():string|null {
+    return this.#condition;
   }
 
   get display_name():string|null {
@@ -43,6 +49,7 @@ export default class Permission implements IModel {
       name: this.name,
       display_name: this.display_name,
       description: this.description,
+      condition: this.condition
     }
   }
 

@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import "./react-table-config.d.ts";
+import React from "react";
 import { useCallback, useMemo, useState} from 'react';
 import * as rt from 'react-table';
 import * as rw from 'react-window';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { AddBoxTwoTone, ArrowDropDownSharp, ArrowRightSharp, AutorenewRounded, Close, FilterListRounded, IndeterminateCheckBoxTwoTone, ViewColumnRounded } from '@mui/icons-material';
-import {Button, ButtonGroup, Card, CardContent, Grid, IconButton, ListItem, ListItemButton, ListItemText, MenuItem, Select, Stack, Switch, TextField, Typography } from '@mui/material';
+import {Button, ButtonGroup, Card, CardContent, Checkbox, Grid, IconButton, ListItem, ListItemButton, ListItemText, MenuItem, Select, Stack, Switch, TextField, Typography } from '@mui/material';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import PopupPanel from '../popup-panel/popup-panel';
@@ -104,8 +105,12 @@ const StyledTableRow = styled('div')(({ theme }) => ({
     borderTop: '0px solid lightgrey',
   },
   '&:nth-of-type(2n)':{
-    backgroundColor: '#f5f5f5'
-  }
+    backgroundColor: '#f8fcff'
+  },
+  '&:hover': {
+    backgroundColor: '#eff8ff',
+    cursor:'pointer',
+  },
 }));
 const StyledTableCell = styled('div')(({theme }) => ({
   padding: theme.spacing(1),
@@ -167,26 +172,33 @@ function GlobalFilter({
   )
 }
 
-function renderColumnSelectionRow(props:any) {
-  const { index, style } = props;
+const IndeterminateCheckbox = React.forwardRef(
+  (props:any, ref) => {
+    const { indeterminate, ...rest } = props;
+    const defaultRef = React.useRef<any>()
+    const resolvedRef:any = ref || defaultRef
 
-  return (
-    <ListItem style={style} key={index} component="div" disablePadding>
-      <ListItemButton>
-        <ListItemText primary={`Item ${index + 1}`} />
-      </ListItemButton>
-    </ListItem>
-  );
-}
+    React.useEffect(() => {
+      resolvedRef.current.indeterminate = indeterminate
+    }, [resolvedRef, indeterminate])
+
+    return (
+      <Checkbox ref={resolvedRef} {...rest} />
+    )
+  }
+)
 export interface DataTableProps<D extends object={}> {
   columns:rt.Column<D>[],
   data:Array<D>,
   initialState?: object,
-  height?:number
+  height?:number,
+  onClick?:(row:any)=>void
+  rowMenu?:any
 }
 
 export function DataTable<D extends object>(props: DataTableProps) {
-    const { columns, data, initialState, height=500 } = props;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    const { columns, data, initialState, height=500, onClick=()=>{} } = props;
     // Use the state and functions returned from useTable to build your UI
     const filterTypes = useMemo(
       () => {
@@ -230,12 +242,14 @@ export function DataTable<D extends object>(props: DataTableProps) {
       data,
       defaultColumn,
       initialState,
-      filterTypes
+      filterTypes,
     };
 
     const {
       getTableProps,
       getTableBodyProps,
+      getToggleAllRowsSelectedProps,
+      toggleRowSelected,
       headerGroups,
       rows,
       allColumns,
@@ -253,6 +267,7 @@ export function DataTable<D extends object>(props: DataTableProps) {
       rt.useGroupBy,
       rt.useSortBy,
       rt.useExpanded,
+      rt.useRowSelect,
       rt.useBlockLayout,
       rt.useResizeColumns,
     )
@@ -266,6 +281,15 @@ export function DataTable<D extends object>(props: DataTableProps) {
       setAllFilters([]);
     };
 
+    const handleRowSelection = (row:rt.Row<any>)=>{
+      return (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(row.id + ` ${event.target.checked?'selected':'unselected'}`);
+        toggleRowSelected(row.id, event.target.checked);
+        console.log(state.selectedRowIds);
+      }
+    };
+
+
     const RenderRow = useCallback(
       ({ index, style }) => {
         const row:any = rows[index]
@@ -275,7 +299,14 @@ export function DataTable<D extends object>(props: DataTableProps) {
             {...row.getRowProps({
               style,
             })}
+            onClick={()=>onClick(row)}
           >
+            {props.rowMenu?<StyledTableCell style={{width:50}}>
+              {props.rowMenu}
+            </StyledTableCell>:null}
+            <StyledTableCell style={{width:50}}>
+              <IndeterminateCheckbox checked={row.isSelected} onChange={handleRowSelection(row)}/>
+            </StyledTableCell>
             {row.cells.map((cell:any, rn:number) => {
               return (
                 <StyledTableCell key={rn} style={{width:cell.column.width}}>
@@ -361,6 +392,12 @@ export function DataTable<D extends object>(props: DataTableProps) {
         <div>
           {headerGroups.map((headerGroup:rt.HeaderGroup, i:number) => (
             <StyledTableRow key={i} style={{minWidth:'100%', width:'max-content', display:'flex'}}>
+              {props.rowMenu?<StyledTableCell style={{width:50}}>
+                #
+              </StyledTableCell>:null}
+              <StyledTableCell style={{width:50}}>
+                <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
+              </StyledTableCell>:
               {headerGroup.headers.map((column:any) => (
                 <StyledTableCell key={column.id} style={{width:column.width}}>
                   {column.canGroupBy ? (

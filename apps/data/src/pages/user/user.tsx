@@ -2,7 +2,7 @@ import { AnchorRounded, MoreVertRounded, PeopleAltOutlined, PeopleAltTwoTone, Ps
 import { Alert, Backdrop, Card, CardContent, CardHeader, Chip, CircularProgress, IconButton, Typography } from "@mui/material";
 import { Page } from "@psni/sharedui"
 import { RouteComponentProps } from 'react-router-dom';
-import { useUser } from "../../hooks/useUser";
+import { useUser } from "../../hooks/userApi";
 
 
 export function UserPage (props:RouteComponentProps<{id?:string}>){

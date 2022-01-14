@@ -1,8 +1,7 @@
 
 import React from "react";
 import * as d3 from "d3";
-import { Popover } from '@mui/material';
-import { Box } from "@mui/system";
+import { Box, Popover } from '@mui/material';
 import Swatch from "./Swatch";
 
 export const mapPieColors =(colors, data)=>d3.scaleSequentialQuantile(

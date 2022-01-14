@@ -1,11 +1,12 @@
-import { Box, SxProps } from '@mui/system';
+
+import { Box } from '@mui/material';
 import './page.module.css';
 
 /* eslint-disable-next-line */
 export interface PageProps {
   children?: React.ReactNode
   center?: boolean,
-  sx?: SxProps,
+  sx?: any, //SxProps
 }
 
 export function Page(props: PageProps) {

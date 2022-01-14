@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Tab, Tabs } from "@mui/material";
-import { IUser, IUserCustomData } from "@psni/models";
+import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Paper, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs } from "@mui/material";
+import { IUser, EventDataMap, IEventData } from "@psni/models";
 
-import { DataTable, Page, PopupPieChart, SelectColumnFilter, TabPanel, uniqueValues, UploadData} from "@psni/sharedui";
+import { DataTable,IconMenu, Page, PopupPieChart, PopupPanel, SelectColumnFilter, TabPanel, uniqueValues, UploadData} from "@psni/sharedui";
 import * as d3 from "d3";
 import { useMemo, useState } from "react";
-import { RouteComponentProps } from "react-router-dom";
-import { useUser } from "../../hooks/useUser";
+import { RouteComponentProps, useHistory } from "react-router-dom";
+import { Row } from "react-table";
+import { useUser } from "../../hooks/userApi";
 import { useUsersList } from "../../hooks/useUsersList";
 import ScoreCard from "./scorecard";
-
+import deepEqual from  'deep-equal';
 
 function a11yProps(suffix:string, index:number) {
   return {
@@ -22,13 +23,53 @@ const db={
   career_stage_list:["Intern", "Junior Associate", "Associate", "Senior Associate", "Manager/Specialist",null, "Sr. Manager/Sr. Specialist", "Director/Expert", "VP/Fellow", "Executive"]
 };
 
+
+function renderCustomDataCell({value}:any){
+  if (!value) return '';
+  const first= value.length?value[0]:null;
+  if (!first) return '';
+  return <PopupPanel buttonContent={`${value.map((e:IEventData)=>e.details?.VALUE).join(', ')}`}
+    >
+    <TableContainer component={Paper} sx={{ maxHeight: 200 }}>
+      <Table stickyHeader size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Date</TableCell>
+            {Object.keys(first.details).map(key=><TableCell>{key}</TableCell>)}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {value.map((data:IEventData,idx:number)=>(
+            <TableRow key={idx}>
+              <TableCell>{data.timestamp.toUTCString()}</TableCell>
+              {Object.keys(data.details).map(key=><TableCell>{JSON.stringify(data.details[key])}</TableCell>)}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </PopupPanel>
+}
+function filterCustomData(rows: Array<Row>, id:any, filterValue:any){
+  return rows.filter(row => {
+    const value=row.values[id]||'';
+    const rowValue = `${value.length?value.map((e:IEventData)=>e.details?.VALUE).join(', '):value}`
+    return rowValue !== undefined
+      ? String(rowValue)
+          .toLowerCase()
+          .indexOf(String(filterValue).toLowerCase())!==-1
+      : true
+  })
+}
 export function TeamPage (props:RouteComponentProps) {
   const [tabIndex, setTabIndex] = useState(1);
+  const [customData, setCustomData] = useState<Map<string, EventDataMap>>();
   const { user }= useUser('me');
   const {users, isLoading, error} = useUsersList();
+  const history = useHistory();
 
-  const columns = useMemo(
-    () => [
+  const {columns, usersData} = useMemo(()=>{
+    const columns:any = [
       // {
       //   Header: '#',
       //   accessor: (row:any, i:number) => i,
@@ -92,25 +133,68 @@ export function TeamPage (props:RouteComponentProps) {
         accessor: 'details.supervisor_name',
         filter: 'text',
       }
-    ],
-    []
-  );
+    ];
+
+    const usersData = [...users];
+    if (!customData) return{columns, usersData};
+
+    const usrIndex = d3.group(usersData, u=>u.email);
+    let jcount=0;
+    let tcount=0;
+    for(const [email, edatamap] of customData.entries()){
+      let usr:any=usrIndex.get(email);
+      if (usr) {
+        usr=usr[0];
+      } else {
+        console.log('Unable to find user '+email);
+        continue;
+      }
+      for(const [key, data] of edatamap.entries()){
+        tcount+=data.length;
+        const el = data[0];
+        if (!el) continue;
+        const cindx = columns.findIndex((c:any)=>c.Header===el.key);
+        if (cindx===-1) {
+          columns.push({
+            Header: el.key,
+            accessor: `customdata.${el.key}`,
+            Cell:renderCustomDataCell,
+            filter:filterCustomData
+          })
+        }
+        if (!usr.customdata) {
+          usr.customdata=new EventDataMap();
+        }
+        if (!usr.customdata[key]){
+          usr.customdata[key]=new Array<IEventData>();
+        }
+        for(let i=0;i<data.length;i++) {
+          const event = data[i];
+          const existingList = usr.customdata[key];
+          if (existingList.find((d:IEventData)=>{
+            return (d.timestamp===event.timestamp && deepEqual(d.details,event.details))
+          })) continue;
+          usr.customdata[key] = [...existingList, event]
+          jcount++;
+        };
+      }
+    }
+    console.log(`Joined data for ${jcount} events of ${tcount} records`);
+    return {columns, usersData};
+  }, [users, customData]);
+
 
   const handleTabChange = (_event: React.SyntheticEvent<Element, Event>, index:number)=>{
     setTabIndex(index);
   }
 
-  const OnJoinData = (data:Array<IUserCustomData>)=>{
-    const usrIndex = d3.group(users,u=>u.email);
-    console.log(data);
-    data.forEach((cdata:IUserCustomData) => {
-      const usr=usrIndex.get(cdata.email);
-      if (usr) {
-        // if (!usr.details.custom) {
-        //   usr.details.custom
-        // }
-      }
-    });
+  const OnJoinData = (data:Map<string, EventDataMap>)=>{
+    setCustomData(data)
+  }
+
+  const onRowClick = (row:any)=>{
+    const usr=row.original;
+    history.push(`/user/${usr.id}`);
   }
 
   return <Page>
@@ -146,7 +230,7 @@ export function TeamPage (props:RouteComponentProps) {
           <Box sx={{px:2, position:'absolute', top:0, bottom:0, left:0, right:0}}>
             <Card>
               <CardContent>
-                <DataTable data={users} columns={columns} height={800}/>
+                <DataTable data={usersData} columns={columns} height={800}/>
               </CardContent>
             </Card>
           </Box>

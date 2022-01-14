@@ -9,6 +9,7 @@ export * from './hooks/useDimensions';
 export * from './lib/data-table/data-table';
 export * from './lib/page/page';
 export * from './lib/tab-panel/tab-panel';
+export * from './lib/icon-menu/icon-menu';
 export * from './lib/theme';
 export * from './lib/GlobalStylesOverride';
 export * from './lib/charts/PieChart';

@@ -15,7 +15,11 @@ function localStorageProvider() {
   // Before unloading the app, we write back all the data into `localStorage`.
   window.addEventListener('beforeunload', () => {
     const appCache = JSON.stringify(Array.from(map.entries()))
-    localStorage.setItem('app-cache', appCache)
+    try {
+      localStorage.setItem('app-cache', appCache)
+    } catch(e) {
+      console.error(e);
+    }
   })
 
   // We still use the map for write & read for performance.
@@ -25,7 +29,7 @@ function localStorageProvider() {
 ReactDOM.render(
   <StrictMode>
     <BrowserRouter>
-      <SWRConfig value={{ provider: localStorageProvider }}>
+      <SWRConfig value={{ provider: () => new Map()}}>
         <App />
       </SWRConfig>
     </BrowserRouter>

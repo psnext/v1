@@ -17,7 +17,7 @@ const requireSession=(req, res, next)=>{
   next();
 }
 
-const requirePermission=function(permissions) {
+const requirePermission=function(permissions, oid) {
   return async (req, res, next)=>{
     const {log} = req.app;
     if (!req.sessionData) {
@@ -26,7 +26,6 @@ const requirePermission=function(permissions) {
     const userId = req.sessionData.userInfo.id;
     const userRepo = req.db.userRepository;
     try {
-      // const user = await req.db.userRepository.findById(userId);
       const uperms = await userRepo.getPermissions(userId);
       for (let i=0;i<uperms.length;++i) {
         const perm=uperms[i];
@@ -115,6 +114,18 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
         log.debug(row.getCell(headers.LASTPROMODATE).value);
       }
     }
+    if (headers.CS_ID!==-1) {
+      details.csid = row.getCell(headers.CS_ID).value;
+    }
+    if (headers.CURRENT_REGION!==-1) {
+      details.current_region = row.getCell(headers.CURRENT_REGION).value;
+    }
+    if (headers.HOME_REGION!==-1) {
+      details.home_region = row.getCell(headers.HOME_REGION).value;
+    }
+    if (headers.PC!==-1) {
+      details.primary_skill = row.getCell(headers.PC).value;
+    }
     i++;
     cache.set(jobid,{jobid, status:'processing', completed: i, total: worksheet.rowCount-1});
     if (i%100===0){
@@ -160,6 +171,10 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
     headers.CLIENT_NAME = headerRow.values.indexOf('CLIENT_NAME');
     headers.HRMS_TEAM_LEVEL2 = headerRow.values.indexOf('HRMS_TEAM_LEVEL2');
     headers.ORACLE_ID   = headerRow.values.indexOf('ORACLE_ID');
+    headers.CS_ID   = headerRow.values.indexOf('Career Settings_ID');
+    headers.PC   = headerRow.values.indexOf('PRIMARY_CAPABILITY');
+    headers.CURRENT_REGION   = headerRow.values.indexOf('CURRENT_REGION');
+    headers.HOME_REGION   = headerRow.values.indexOf('HOME_REGION');
     headers.TITLE_NAME  = headerRow.values.indexOf('TITLE_NAME');
     headers.CAREER_STAGE = headerRow.values.indexOf('CAREER_STAGE');
     headers.STARTDATE   = headerRow.values.indexOf('STARTDATE');
@@ -217,7 +232,7 @@ userApiRouter.post('/upload', requirePermission(['Users.Write.All']), upload.sin
   }
 });
 
-userApiRouter.get('/snapshotdates', async (req, res)=>{
+userApiRouter.get('/snapshotdates', requireSession, async (req, res)=>{
   const {log} = req.app;
   const {pool} = req.app.db;
   try {
@@ -257,13 +272,14 @@ userApiRouter.get('/:id', requireSession, async (req, res)=>{
         FROM users
         WHERE id = $1
         UNION
-          SELECT e.id,e.name,e.email, e.picture,e.details, CONCAT(e.name,'>',s.sh) as sh, CONCAT(e.id,'>',s.shid) as shid
+          SELECT e.id,e.name, e.email, e.picture, e.details, CONCAT(e.name,'>',s.sh) as sh, CONCAT(e.id,'>',s.shid) as shid
           FROM users e
           INNER JOIN subordinates s ON s.details->'supervisor_oid' = e.details->'oid'
       ) SELECT * FROM subordinates
       WHERE id=$1`,
     [userId]);
     const u = results.rows[0]
+    console.log(results.rows);
 
     return res.json({
       id: u.id,
@@ -325,12 +341,13 @@ userApiRouter.get('/:id/permissions', requireSession, async (req, res)=>{
   const userId = req.params.id==='me'?req.sessionData.userInfo.id:req.params.id;
   const userRepo = req.db.userRepository;
   try {
-    const uperms = await userRepo.getPermissions(userId);
-    let match = uperms.find(u=>u.name==='UserRoles.Read.All');
+    const callerPermissions = await userRepo.getPermissions(req.sessionData.userInfo.id);
+    const uperms = req.params.id==='me'? callerPermissions:await userRepo.getPermissions(userId);
+
+    let match = callerPermissions.find(u=>u.name==='UserRoles.Read.All');
     if (!match && userId===req.sessionData.userInfo.id){
       match = uperms.find(u=>u.name==='UserRoles.Read.Self');
       if (!match) return res.sendStatus(403);
-      roles = await req.db.userRepository.getRoles(userId);
     }
     return res.json(uperms.map(p=>p.toJSON()));
   } catch (err) {
@@ -339,6 +356,19 @@ userApiRouter.get('/:id/permissions', requireSession, async (req, res)=>{
   }
 });
 
+
+userApiRouter.get('/:id/permissions/resetcache', requirePermission(['UserRoles.Write.All']), async (req, res)=>{
+  const {log} = req.app;
+  const userId = req.params.id==='me'?req.sessionData.userInfo.id:req.params.id;
+  const userRepo = req.db.userRepository;
+  try {
+    await userRepo.resetPermissionsCache(userId);
+    return res.sendStatus(200);
+  } catch (err) {
+    log.error(err);
+    return res.status(500).send({message:'Unable to reset the permissions for the user'});
+  }
+});
 
 userApiRouter.get('/', requireSession, async (req, res)=>{
   const {log} = req.app;
@@ -356,28 +386,24 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
 
   console.debug({name, email, limit, offset, date});
 
+  let condition = '1=1';
+  if (uperms.find(p=>p.name==='Users.Read.Custom')) {
+    log.debug('matched Users.Read.Custom');
+    results = await pool.query(`
+      SELECT * from users_custom_permissions
+      WHERE uid=$1 AND permission='Users.Read.Custom'
+    `,[userId]);
+    if (results.rowCount!==0) {
+      condition=results.rows.map(r=>` (${r.condition}) `).join('AND');
+    }
+  }
+
   if (uperms.find(p=>p.name==='Users.Read.All')){
     log.debug('matched Users.Read.All');
     results = await pool.query(`SELECT * FROM users
       WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD')
       ORDER BY name LIMIT $1 OFFSET $2`,
       [limit, offset, `%${name}%`, `%${email}%`,date]);
-  }
-  else if (uperms.find(p=>p.name==='Users.Read.Custom')) {
-    log.debug('matched Users.Read.Custom');
-    results = await pool.query(`
-      SELECT * from users_custom_permissions
-      WHERE uid=$1 AND permission='Users.Read.Custom'
-    `,[userId]);
-    if (results.rowCount===0) {
-      log.warn('No custom permissions found');
-      return res.json([]);
-    }
-    const condition=results.rows.map(r=>` (${r.condition}) `).join('AND');
-    results = await pool.query(`SELECT * FROM users
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD') AND (${condition})
-      ORDER BY name LIMIT $1 OFFSET $2`,
-      [limit, offset, `%${name}%`, `%${email}%`, date]);
   }
   else if (uperms.find(p=>p.name==='Users.Read.Directs')) {
     log.debug('matched Users.Read.Directs');
@@ -391,13 +417,11 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
           FROM users e
           INNER JOIN subordinates s ON s.details->'oid' = e.details->'supervisor_oid'
       ) SELECT * FROM subordinates
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($6,'YYYY-MM-DD')
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($6,'YYYY-MM-DD') AND (${condition})
       ORDER BY name LIMIT $1 OFFSET $2;`,
     [limit, offset, `%${name}%`, `%${email}%`, userId, date]);
   }
-  else {
-    return res.sendStatus(403);
-  }
+
   // const results = await req.db.userRepository.findByName(name, limit, offset);
   const users=[];
   console.log(results.rowCount);

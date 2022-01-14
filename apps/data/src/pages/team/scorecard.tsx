@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { styled } from '@mui/material/styles';
-import { Card, CardActions, CardContent, CardHeader, Chip, Collapse, Grid, IconButton, IconButtonProps, ListItemText,MenuItem,Select,Typography } from "@mui/material";
+import { Card, CardActions, CardContent, CardHeader, Collapse, Grid, IconButton, IconButtonProps, ListItemText,MenuItem,Select,Typography } from "@mui/material";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useUser } from "../../hooks/useUser";
+import { useUser } from "../../hooks/userApi";
 import { useUsersList } from "../../hooks/useUsersList";
-import { PopupPanel, MultiSelectList, CircularProgressWithLabel, PopupPieChart, uniqueValues } from "@psni/sharedui";
+import { CircularProgressWithLabel, PopupPieChart, uniqueValues } from "@psni/sharedui";
 import * as d3 from "d3";
 import { IUser } from "@psni/models";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Box } from "@mui/system";
+import Box from '@mui/material/Box';
 import * as fns from 'date-fns';
 import { useSnapshotDates } from "../../hooks/useSnapshotDates";
+import { SelectUsers } from "../../components/SelectUsers";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -29,40 +30,6 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
     duration: theme.transitions.duration.shortest,
   }),
 }));
-
-function SelectUsers(props: { users: Array<any>; selected: Array<any>; onChange:any}){
-  const {users=[], selected=[], onChange=null} = props;
-
-  const handleDelete=useCallback((u:any)=>{
-    const idx = selected.indexOf(u);
-    if (idx!==-1) {
-      const newlist = [...selected];
-      newlist.splice(idx,1);
-      onChange(newlist);
-    }
-  },[selected, onChange]);
-
-  const handleChange = (selected:any)=>{
-    onChange(selected);
-  }
-
-  return (<PopupPanel buttonContent={<div>
-        {selected.map((u:any, i:number)=><Chip key={u?.id||'0'} label={u?.name} onDelete={()=>handleDelete(u)}/>)}
-        </div>}>
-          <Card sx={{p:2, minWidth:200}}>
-            <MultiSelectList
-              value={selected}
-              options={users}
-              getOptionLabel={(o:any)=>o.name}
-              getOptionSubLabel={(o:any)=>o.details.title}
-              onChange={handleChange}
-              itemProps={{sx:{px:0}}}
-            />
-          </Card>
-      </PopupPanel>
-  )
-}
-
 
 const db={
   career_stage_list:["Intern", "Junior Associate", "Associate", "Senior Associate", "Manager/Specialist",null, "Sr. Manager/Sr. Specialist", "Director/Expert", "VP/Fellow", "Executive"]

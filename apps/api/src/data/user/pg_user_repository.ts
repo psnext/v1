@@ -102,6 +102,19 @@ export default class PG_User_Repository implements IUserRepository {
     }
   }
 
+  async resetPermissionsCache(uid:string) {
+    if (!uid) return;
+    const CACHE_KEY = `perms.${uid}`;
+    try {
+      if (this.#cache) {
+        await this.#cache.del(CACHE_KEY);
+      }
+    }
+    catch(ex) {
+      console.debug(ex);
+    }
+  }
+
   async getPermissions(uid?:string): Promise<Permission[]> {
     const permissions:Permission[]=[];
     if (!uid) return permissions;
@@ -110,6 +123,7 @@ export default class PG_User_Repository implements IUserRepository {
       if (this.#cache) {
         const cdata:[] = await this.#cache.get(CACHE_KEY);
         if (cdata) {
+          console.log('returning permissions from cache: ' + CACHE_KEY);
           cdata.map((p)=>{
             permissions.push(new Permission(p));
           })
@@ -125,12 +139,12 @@ export default class PG_User_Repository implements IUserRepository {
         )`,
        [uid]);
       res.rows.map((p)=>{
-        permissions.push(new Permission(p));
+        if (p.name.indexOf('.Custom')===-1)
+          permissions.push(new Permission(p));
       });
 
-
       //get custom permissions
-      res = await this.#pool.query(`SELECT p.* FROM permissions as p
+      res = await this.#pool.query(`SELECT p.*, ucp.condition as condition FROM permissions as p
         INNER JOIN users_custom_permissions as ucp
         ON (ucp.permission=p.name) where ucp.uid=$1;`,
        [uid]);
