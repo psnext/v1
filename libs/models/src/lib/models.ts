@@ -10,6 +10,9 @@ export interface IUserDetails {
   startdate?: string
   supervisor_name?: string
   supervisor_oid?: number
+  current_region?:string
+  home_region?:string
+  primary_skill?:string
   team?: string
   title?: string
 }

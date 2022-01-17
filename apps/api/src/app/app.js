@@ -87,6 +87,8 @@ app.get('/ping', function(_req,res){
 
 import usersApiRouter from '../api/users';
 app.use('/api/users', usersApiRouter);
+import rolesApiRouter from '../api/roles';
+app.use('/api/roles', rolesApiRouter);
 
 app.get('/api/job/:id', async (req, res)=>{
   const {log, cache} = req.app;

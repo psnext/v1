@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import {CalendarChart, Page, TabPanel, useAuth, useQuery} from '@psni/sharedui';
 import { Link, Redirect, useHistory } from 'react-router-dom';
 import { Accordion, AccordionDetails, AccordionSummary, AppBar, Box, Button, Card, CardActions, CardContent, CardHeader, CircularProgress,
-  FormControl, FormHelperText, Icon, Input, InputAdornment, InputLabel, OutlinedInput, Snackbar, Tab, Tabs, TextField, Typography } from '@mui/material';
+  FormControl, FormHelperText, Grid, Icon, Input, InputAdornment, InputLabel, MenuItem, OutlinedInput, Select, SelectChangeEvent, Snackbar, Tab, Tabs, TextField, Typography } from '@mui/material';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import * as fns from 'date-fns';
@@ -14,6 +14,8 @@ import { SelectUsers } from "../../components/SelectUsers";
 import { useUsersList } from "../../hooks/useUsersList";
 import { useUser } from '../../hooks/userApi';
 import { UserPermissions } from '../user/UserPermissions';
+import useSWR from 'swr';
+import { fetcher } from '../../hooks/fetcher';
 
 const getJsonIndented = (newObj:any) => JSON.stringify(newObj, null, 4).replace(/["{[,}\]]/g, "").replace(/(\s+)(\w+):\s/g, "<span><em>$1$2</em>:&nbsp;</span>")
 
@@ -22,6 +24,107 @@ const JSONDisplayer = (props:any) => (
     <pre dangerouslySetInnerHTML={{ __html:getJsonIndented(props.children)}}></pre>
   </Box>
 )
+
+function AddRole(props:any){
+  const { data=[], error } = useSWR('/api/roles/', fetcher)
+  const [role, setRole] = React.useState('');
+  const [cpCondition, setCPCondition] = useState('');
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setRole(event.target.value as string);
+    // if (props.onChange) {
+    //   props.onChange(event);
+    // }
+  };
+
+  // const handleCustomPermissionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setCustompermission(event.target.value);
+  // }
+
+  const handleCPConditionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCPCondition(event.target.value);
+  }
+
+  const handleAdd = () => {
+    if (role==='') return;
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    const request = new Request(`/api/users/${props.userId}/roles`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({roleid: role}),
+    });
+
+    fetch(request)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        setRole('');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+
+  const handleCustomPermissionAdd = () => {
+    if (cpCondition==='') return;
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    const request = new Request(`/api/users/${props.userId}/custompermissions`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({permission: 'Users.Read.Custom', condition:cpCondition}),
+    });
+
+    fetch(request)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        setRole('');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+
+  return (
+    <Box sx={{ minWidth: 120, py:1 }}>
+      <Grid container spacing={1} alignContent='center'>
+        <Grid item sm={4}>
+          <FormControl fullWidth>
+            <InputLabel id="role-select-label">Role</InputLabel>
+            <Select
+              labelId="role-select-label"
+              id="role-select"
+              value={role}
+              label="Role"
+              onChange={handleChange}
+            >
+              {data.map((r:any)=><MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item sm={2} >
+          <Button variant='outlined' onClick={handleAdd} fullWidth>Add Role</Button>
+        </Grid>
+        <Grid item sm={4}>
+          <TextField
+            label='Custom Permission'
+            value={cpCondition}
+            onChange={handleCPConditionChange}
+            defaultValue={`(details @> '{"team":"Team Retail"}'::jsonb)`}
+            fullWidth/>
+        </Grid>
+        <Grid item sm={2}>
+          <Button variant='outlined' onClick={handleCustomPermissionAdd} fullWidth>Add Custom Permission</Button>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
 
 function UserAdminPanel() {
   const { user }= useUser('me');
@@ -61,6 +164,9 @@ function UserAdminPanel() {
           <hr/>
           <h6>Data dump</h6>
           <JSONDisplayer>{u}</JSONDisplayer>
+          <br/>
+          <hr/>
+          <AddRole userId={u.id}/>
           <br/>
           <hr/>
           <Typography variant='caption'>Permissions</Typography>

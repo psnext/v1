@@ -43,7 +43,7 @@ export default class Permission implements IModel {
     this.#description = description;
   }
 
-  toJSON(): object {
+  toJSON() {
     return {
       id: this.id,
       name: this.name,

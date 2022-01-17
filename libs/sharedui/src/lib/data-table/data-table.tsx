@@ -371,7 +371,7 @@ export function DataTable<D extends object>(props: DataTableProps) {
                 <Button onClick={()=>setAllFilters([])}>Reset</Button>
               </Stack>
               <Grid container sx={{alignItems:'flex-end'}} spacing={1}>
-                {allColumns.map((column:any)=><Grid item xs={12} sm={6}>
+                {allColumns.map((column:any)=><Grid key={column.id} item xs={12} sm={6}>
                   <Box>
                     {column.canFilter ? column.render('Filter') : null}
                   </Box>

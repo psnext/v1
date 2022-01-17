@@ -1,3 +1,4 @@
+import { IUser, IUserDetails } from "@psni/models";
 import { IModel } from "../common";
 import Role from "../role/role";
 
@@ -6,11 +7,11 @@ export default class User implements IModel {
   #email: string;
   #name: string|null;
   #picture: string|null;
-  #details?: any={};
+  #details?: IUserDetails;
   #roles: Role[]=[];
   #changedValues:any={};
 
-  constructor(data:{id:string, email:string, name?:string, picture?:string, details?:any, roles?:Role[]}){
+  constructor(data:{id:string, email:string, name?:string, picture?:string, details?:IUserDetails, roles?:Role[]}){
     this.#id = data.id;
     this.email = data.email,
     this.name = data.name||null;
@@ -57,12 +58,12 @@ export default class User implements IModel {
     }
   }
 
-  get details():any {
+  get details():IUserDetails {
     return this.#details;
   }
-  set details(details:any) {
-    const areEqual = (Object.entries(details).sort().toString()===
-    Object.entries(this.#details).sort().toString())
+  set details(details:IUserDetails) {
+    const areEqual = this.#details?(Object.entries(details).sort().toString()===
+    Object.entries(this.#details).sort().toString()):false;
     if (!areEqual) {
       this.#changedValues['details']=details;
       this.#details = details||{};
@@ -78,12 +79,13 @@ export default class User implements IModel {
   }
 
 
-  toJSON():object {
+  toJSON():IUser {
     return {
       id: this.id,
       email: this.email,
       name: this.name,
       picture: this.picture,
+      details: this.details
     }
   }
 

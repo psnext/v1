@@ -5,42 +5,12 @@ import * as multer from 'multer';
 import * as Excel from 'exceljs';
 import {User} from '../data';
 import * as crypto from 'crypto';
+import { requirePermission, requireSession } from './middleware';
 
 var storage = multer.memoryStorage()
 var upload = multer({ storage: storage })
 const userApiRouter = express.Router();
 
-const requireSession=(req, res, next)=>{
-  if (!req.sessionData) {
-    return res.status(401).send();
-  }
-  next();
-}
-
-const requirePermission=function(permissions, oid) {
-  return async (req, res, next)=>{
-    const {log} = req.app;
-    if (!req.sessionData) {
-      return res.sendStatus(401);
-    }
-    const userId = req.sessionData.userInfo.id;
-    const userRepo = req.db.userRepository;
-    try {
-      const uperms = await userRepo.getPermissions(userId);
-      for (let i=0;i<uperms.length;++i) {
-        const perm=uperms[i];
-        if (permissions.indexOf(perm.name)!=-1){
-          log.debug('matched '+perm.name);
-          return next();
-        }
-      };
-      return res.sendStatus(403);
-    } catch (ex) {
-      log.error(ex);
-    }
-    next();
-  }
-}
 
 async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
   let i = 2;
@@ -336,6 +306,40 @@ userApiRouter.get('/:id/roles', requirePermission(['UserRoles.Read.Self','UserRo
   }
 });
 
+userApiRouter.post('/:id/roles', requirePermission(['UserRoles.Write.All']), async (req, res)=>{
+  const roleid = (req.body.roleid||'').trim();
+  const userRepo = req.db.userRepository;
+  const {pool} = req.app.db;
+  const {log} = req.app;
+  const userId = req.params.id==='me'?req.sessionData.userInfo.id:req.params.id;
+  try {
+    if (!roleid) {
+      return res.status(400).send({message: 'Invalid email of roleid'});
+    }
+
+    if (roleid==='1') {
+      return res.status(403).send({message:'Invalid roleid.'});
+    }
+
+    let result = await pool.query('SELECT uid,roleid FROM user_roles WHERE uid=$1 AND roleid=$2',[userId, roleid]);
+    if (result.rowCount!==0){
+      console.info(`User (${userId}) already has role ${roleid}.`);
+      return res.sendStatus(200);
+    }
+
+    //add role
+    result = await pool.query("INSERT INTO user_roles(uid, roleid) VALUES($1, $2)", [userId, roleid]);
+    await userRepo.resetPermissionsCache(userId);
+    return res.send({});
+    // const roles = await req.db.userRepository.getRoles(userId);
+    // return res.json(roles.map(r=>r.toJSON()));
+  } catch (err) {
+    log.error(err);
+    return res.status(500).send({message:'Unable to add the roles for the user'});
+  }
+});
+
+
 userApiRouter.get('/:id/permissions', requireSession, async (req, res)=>{
   const {log} = req.app;
   const userId = req.params.id==='me'?req.sessionData.userInfo.id:req.params.id;
@@ -351,6 +355,36 @@ userApiRouter.get('/:id/permissions', requireSession, async (req, res)=>{
     }
     return res.json(uperms.map(p=>p.toJSON()));
   } catch (err) {
+    log.error(err);
+    return res.status(500).send({message:'Unable to fetch the permissions for the user'});
+  }
+});
+
+userApiRouter.post('/:id/custompermissions', requirePermission(['UserRoles.Write.All']), async (req, res)=>{
+  const {log} = req.app;
+  const userId = req.params.id==='me'?req.sessionData.userInfo.id:req.params.id;
+  const userRepo = req.db.userRepository;
+  const {pool} = req.app.db;
+  const permission = (req.body.permission||'').trim();
+  const condition = (req.body.condition||'').trim();
+  try {
+    if (permission==='' || condition==='') return res.sendStatus(400);
+
+    let dbres = await pool.query('SELECT * from users_custom_permissions WHERE uid=$1 AND permission=$2',[userId, permission]);
+    if (dbres.rowCount!==0) {
+      await pool.query('UPDATE users_custom_permissions SET condition=$3 WHERE uid=$1 AND permission=$2) VALUES ($1, $2, $3)',[
+        userId, permission, condition
+      ])
+    } else {
+      await pool.query('INSERT INTO users_custom_permissions(uid, permission, condition) VALUES ($1, $2, $3)',[
+        userId, permission, condition
+      ])
+    }
+    await userRepo.resetPermissionsCache(userId);
+
+    return res.sendStatus(200);
+
+  } catch(err) {
     log.error(err);
     return res.status(500).send({message:'Unable to fetch the permissions for the user'});
   }
@@ -386,8 +420,17 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
 
   console.debug({name, email, limit, offset, date});
 
-  let condition = '1=1';
-  if (uperms.find(p=>p.name==='Users.Read.Custom')) {
+
+
+  if (uperms.find(p=>p.name==='Users.Read.All')){
+    log.debug('matched Users.Read.All');
+    results = await pool.query(`SELECT * FROM users
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD')
+      ORDER BY name LIMIT $1 OFFSET $2`,
+      [limit, offset, `%${name}%`, `%${email}%`,date]);
+  }
+  else if (uperms.find(p=>p.name==='Users.Read.Custom')) {
+    let condition = '1=0';
     log.debug('matched Users.Read.Custom');
     results = await pool.query(`
       SELECT * from users_custom_permissions
@@ -396,12 +439,9 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
     if (results.rowCount!==0) {
       condition=results.rows.map(r=>` (${r.condition}) `).join('AND');
     }
-  }
-
-  if (uperms.find(p=>p.name==='Users.Read.All')){
-    log.debug('matched Users.Read.All');
+    log.debug(`condition: ${condition}`);
     results = await pool.query(`SELECT * FROM users
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD')
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD') AND (${condition})
       ORDER BY name LIMIT $1 OFFSET $2`,
       [limit, offset, `%${name}%`, `%${email}%`,date]);
   }
@@ -417,7 +457,7 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
           FROM users e
           INNER JOIN subordinates s ON s.details->'oid' = e.details->'supervisor_oid'
       ) SELECT * FROM subordinates
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($6,'YYYY-MM-DD') AND (${condition})
+      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($6,'YYYY-MM-DD')
       ORDER BY name LIMIT $1 OFFSET $2;`,
     [limit, offset, `%${name}%`, `%${email}%`, userId, date]);
   }
