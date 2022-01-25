@@ -412,11 +412,18 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
 
   // const user = userRepo.findById(userId);
   const uperms = await userRepo.getPermissions(userId);
+  let results;
+  // results= await pool.query(`SELECT id, name, email, picture, details from users WHERE id=$1`, [userId]);
 
-  let results= await pool.query(`SELECT id, name, email, picture, details from users WHERE id=$1`, [userId]);
+  // const user = results.rows[0];
 
-  const user = results.rows[0];
-  const {name='', email='', limit=100000, offset=0,date=user.details.snapshotdate} = req.query;
+  let sdate = req.query.date;
+  if (!sdate) {
+    results = await pool.query("select distinct details->'snapshotdate' as sdate from users order by sdate desc limit 1");
+    sdate = results.rows[0].sdate;
+  }
+  const {name='', email='', limit=100000, offset=0, date=sdate} = req.query;
+
 
   console.debug({name, email, limit, offset, date});
 
