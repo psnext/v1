@@ -90,6 +90,23 @@ function AddRole(props:any){
       });
   }
 
+  const handleResetPermission = () => {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    const request = new Request(`/api/users/${props.userId}/permissions/resetcache`, {
+      method: 'GET',
+      headers: headers,
+    });
+
+    fetch(request)
+      .then(response => {
+        console.log('Success:');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
   return (
     <Box sx={{ minWidth: 120, py:1 }}>
       <Grid container spacing={1} alignContent='center'>
@@ -120,6 +137,9 @@ function AddRole(props:any){
         </Grid>
         <Grid item sm={2}>
           <Button variant='outlined' onClick={handleCustomPermissionAdd} fullWidth>Add Custom Permission</Button>
+        </Grid>
+        <Grid item sm={2}>
+          <Button variant='outlined' onClick={handleResetPermission} fullWidth>Reset Permissions Cache</Button>
         </Grid>
       </Grid>
     </Box>
