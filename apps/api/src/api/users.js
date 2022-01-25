@@ -307,7 +307,7 @@ userApiRouter.get('/:id/roles', requirePermission(['UserRoles.Read.Self','UserRo
 });
 
 userApiRouter.post('/:id/roles', requirePermission(['UserRoles.Write.All']), async (req, res)=>{
-  const roleid = (req.body.roleid||'').trim();
+  const roleid = ((req.body.roleid||'')+'').trim();
   const userRepo = req.db.userRepository;
   const {pool} = req.app.db;
   const {log} = req.app;

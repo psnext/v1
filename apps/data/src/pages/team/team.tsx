@@ -134,6 +134,11 @@ export function TeamPage (props:RouteComponentProps) {
         filter: 'text',
       },
       {
+        Header: 'Start Date',
+        accessor: 'details.startdate',
+        filter: 'text',
+      },
+      {
         Header: 'Client',
         accessor: 'details.client',
         filter: 'text',
