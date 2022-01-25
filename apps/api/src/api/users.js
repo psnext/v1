@@ -419,7 +419,7 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
 
   let sdate = req.query.date;
   if (!sdate) {
-    results = await pool.query("select distinct details->'snapshotdate' as sdate from users order by sdate desc");
+    results = await pool.query("select distinct details->'snapshotdate' as sdate from users where details->'snapshotdate' is not null order by sdate desc");
     sdate = results.rows[0].sdate;
   }
   const {name='', email='', limit=100000, offset=0, date=sdate} = req.query;
