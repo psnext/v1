@@ -28,7 +28,7 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
     const middlename = (headers.MIDDLE_NAME<0?null:row.getCell(headers.MIDDLE_NAME).value)||'';
     const lastname = (headers.LAST_NAME<0?null:row.getCell(headers.LAST_NAME).value)||'';
     const name = firstname.trim()+' '+middlename.trim()+' '+lastname.trim();
-    const email = (headers.EMAIL_ADDRESS<0?null:row.getCell(headers.EMAIL_ADDRESS).value)||'';
+    const email = ((headers.EMAIL_ADDRESS<0?null:row.getCell(headers.EMAIL_ADDRESS).value)||'').trim().toLocaleLowerCase();
     const details={snapshotdate: fns.format(date,'yyyy-MM-dd')};
     if (headers.GENDER!==-1) {
       details.gender = row.getCell(headers.GENDER).value;
@@ -42,15 +42,15 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
       details.oid = row.getCell(headers.ORACLE_ID).value;
     }
     if (headers.CLIENT_NAME!==-1) {
-      details.client = (headers.CLIENT_NAME<0?null:row.getCell(headers.CLIENT_NAME).value)||'';
+      details.client = ((headers.CLIENT_NAME<0?null:row.getCell(headers.CLIENT_NAME).value)||'').trim();
     }
 
     if (headers.HRMS_TEAM_LEVEL2!==-1) {
-      details.capability = (headers.HRMS_TEAM_LEVEL2<0?null:row.getCell(headers.HRMS_TEAM_LEVEL2).value)||'';
+      details.capability = ((headers.HRMS_TEAM_LEVEL2<0?null:row.getCell(headers.HRMS_TEAM_LEVEL2).value)||'').trim();
     }
 
     if (headers.TEAM_NAME!==-1) {
-      details.team = row.getCell(headers.TEAM_NAME).value;
+      details.team = (row.getCell(headers.TEAM_NAME).value||'').trim();
     }
 
     if (headers.SUPERVISOR!==-1){
@@ -65,7 +65,7 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
       }
     }
     if (headers.TITLE_NAME!==-1) {
-      details.title = row.getCell(headers.TITLE_NAME).value;
+      details.title = (row.getCell(headers.TITLE_NAME).value||'').trim();
     }
     if (headers.CAREER_STAGE!==-1) {
       details.career_stage = row.getCell(headers.CAREER_STAGE).value;
@@ -88,13 +88,13 @@ async function* getUserValues(jobid, cache, log, date, worksheet, headers) {
       details.csid = row.getCell(headers.CS_ID).value;
     }
     if (headers.CURRENT_REGION!==-1) {
-      details.current_region = row.getCell(headers.CURRENT_REGION).value;
+      details.current_region = (row.getCell(headers.CURRENT_REGION).value||'').trim();
     }
     if (headers.HOME_REGION!==-1) {
-      details.home_region = row.getCell(headers.HOME_REGION).value;
+      details.home_region = (row.getCell(headers.HOME_REGION).value||'').trim();
     }
     if (headers.PC!==-1) {
-      details.primary_skill = row.getCell(headers.PC).value;
+      details.primary_skill = (row.getCell(headers.PC).value||'').trim();
     }
     i++;
     cache.set(jobid,{jobid, status:'processing', completed: i, total: worksheet.rowCount-1});
@@ -504,10 +504,10 @@ userApiRouter.post('/requestaccess', async (req, res)=>{
   if (emailParts[1]!=='publicissapient.com') return res.status(400).json({error:'Invalid email domain.'});
 
   try {
-    let result = await pool.query(`SELECT id FROM users WHERE email=$1`,[email]);
+    let result = await pool.query(`SELECT id FROM users WHERE email=$1`,[email.toLocaleLowerCase()]);
     if (result.rowCount===0) {
       // return res.status(400).json({error:'Unknown user.'});
-      result = await pool.query(`INSERT INTO users(email) VALUES($1) RETURNING *`, [email]);
+      result = await pool.query(`INSERT INTO users(email) VALUES($1) RETURNING *`, [email.toLocaleLowerCase()]);
     }
 
     const code=generateCODE(6);

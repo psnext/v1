@@ -119,6 +119,21 @@ export function TeamPage (props:RouteComponentProps) {
         filter: 'text',
       },
       {
+        Header: 'Primary Skill',
+        accessor: 'details.primary_skill',
+        filter: 'text',
+      },
+      {
+        Header: 'Current Region',
+        accessor: 'details.current_region',
+        filter: 'text',
+      },
+      {
+        Header: 'Home Region',
+        accessor: 'details.home_region',
+        filter: 'text',
+      },
+      {
         Header: 'Client',
         accessor: 'details.client',
         filter: 'text',
