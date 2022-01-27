@@ -3,7 +3,7 @@ import useSWR from "swr";
 import { fetcher } from "./fetcher";
 
 export function useUsersList(date?: string) {
-  const {data=[], error} = useSWR<Array<IUser>>(`/api/users/${date?('date='+date):''}`, fetcher);
+  const {data=[], error} = useSWR<Array<IUser>>(`/api/users/?${date?('date='+date):''}`, fetcher);
 
   let uerror = error;
   if (error && error.response) {

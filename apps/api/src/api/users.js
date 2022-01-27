@@ -432,9 +432,9 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
   if (uperms.find(p=>p.name==='Users.Read.All')){
     log.debug('matched Users.Read.All');
     results = await pool.query(`SELECT * FROM users
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD')
+      WHERE name ILIKE $3 AND email LIKE $4 ${date!='any'?`AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE('${date}','YYYY-MM-DD')`:''}
       ORDER BY name LIMIT $1 OFFSET $2`,
-      [limit, offset, `%${name}%`, `%${email}%`,date]);
+      [limit, offset, `%${name}%`, `%${email}%`]);
   }
   else if (uperms.find(p=>p.name==='Users.Read.Custom')) {
     let condition = '1=0';
@@ -448,9 +448,9 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
     }
     log.debug(`condition: ${condition}`);
     results = await pool.query(`SELECT * FROM users
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($5,'YYYY-MM-DD') AND (${condition})
+      WHERE name ILIKE $3 AND email LIKE $4 ${date!='any'?`AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE('${date}','YYYY-MM-DD')`:''} AND (${condition})
       ORDER BY name LIMIT $1 OFFSET $2`,
-      [limit, offset, `%${name}%`, `%${email}%`,date]);
+      [limit, offset, `%${name}%`, `%${email}%`]);
   }
   else if (uperms.find(p=>p.name==='Users.Read.Directs')) {
     log.debug('matched Users.Read.Directs');
@@ -464,9 +464,9 @@ userApiRouter.get('/', requireSession, async (req, res)=>{
           FROM users e
           INNER JOIN subordinates s ON s.details->'oid' = e.details->'supervisor_oid'
       ) SELECT * FROM subordinates
-      WHERE name ILIKE $3 AND email LIKE $4 AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE($6,'YYYY-MM-DD')
+      WHERE name ILIKE $3 AND email LIKE $4 ${date!='any'?`AND TO_DATE(details->>'snapshotdate','YYYY-MM-DD')=TO_DATE('${date}','YYYY-MM-DD')`:''}
       ORDER BY name LIMIT $1 OFFSET $2;`,
-    [limit, offset, `%${name}%`, `%${email}%`, userId, date]);
+    [limit, offset, `%${name}%`, `%${email}%`, userId]);
   }
 
   // const results = await req.db.userRepository.findByName(name, limit, offset);

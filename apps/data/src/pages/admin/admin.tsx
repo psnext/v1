@@ -138,8 +138,8 @@ function AddRole(props:any){
         <Grid item sm={2}>
           <Button variant='outlined' onClick={handleCustomPermissionAdd} fullWidth>Add Custom Permission</Button>
         </Grid>
-        <Grid item sm={2}>
-          <Button variant='outlined' onClick={handleResetPermission} fullWidth>Reset Permissions Cache</Button>
+        <Grid item sm={4}>
+          <Button variant='outlined' onClick={handleResetPermission} size='small' fullWidth>Reset Permissions Cache</Button>
         </Grid>
       </Grid>
     </Box>
@@ -148,7 +148,7 @@ function AddRole(props:any){
 
 function UserAdminPanel() {
   const { user }= useUser('me');
-  const {users, isLoading, error} = useUsersList();
+  const {users, isLoading, error} = useUsersList('any');
   const [selectedUsers, setSelectedUsers] = useState<Array<any>>([]);
   const [expanded, setExpanded] = React.useState<string | false>(false);
 
