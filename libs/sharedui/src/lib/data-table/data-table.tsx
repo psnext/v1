@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import "./react-table-config.d.ts";
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { useCallback, useMemo, useState} from 'react';
 import * as rt from 'react-table';
 import * as rw from 'react-window';
@@ -171,22 +171,6 @@ function GlobalFilter({
     </Stack>
   )
 }
-
-const IndeterminateCheckbox = React.forwardRef(
-  (props:any, ref) => {
-    const { indeterminate, ...rest } = props;
-    const defaultRef = React.useRef<any>()
-    const resolvedRef:any = ref || defaultRef
-
-    React.useEffect(() => {
-      resolvedRef.current.indeterminate = indeterminate
-    }, [resolvedRef, indeterminate])
-
-    return (
-      <Checkbox ref={resolvedRef} {...rest} />
-    )
-  }
-)
 export interface DataTableProps<D extends object={}> {
   columns:rt.Column<D>[],
   data:Array<D>,
@@ -194,11 +178,47 @@ export interface DataTableProps<D extends object={}> {
   height?:number,
   onClick?:(row:any)=>void
   rowMenu?:any
+  updateTableData?:any
+}
+
+// Create an editable cell renderer
+const EditableCell = ({
+  value: initialValue,
+  row: { index , subRows},
+  column: { id },
+  updateTableData, // This is a custom function that we supplied to our table instance
+}:any) => {
+  // We need to keep and update the state of the cell normally
+  const [value, setValue] = React.useState(initialValue)
+
+  const onChange = (e:ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value)
+  }
+
+  // We'll only update the external data when the input is blurred
+  const onBlur = () => {
+    if (updateTableData) {
+      updateTableData(index, id, value)
+    }
+  }
+
+  // If the initialValue is changed external, sync it up with our state
+  React.useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
+
+  if (subRows.length>0) {
+    return `${value||''}`
+  }
+  return <input value={value||''} onChange={onChange} onBlur={onBlur} style={{
+    fontSize: "1rem", padding: 0, margin: 0, border: 0}}
+    disabled={!updateTableData}
+    />
 }
 
 export function DataTable<D extends object>(props: DataTableProps) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    const { columns, data, initialState, height=500, onClick=()=>{} } = props;
+    const { columns, data, initialState, updateTableData, height=500, onClick=()=>{} } = props;
     // Use the state and functions returned from useTable to build your UI
     const filterTypes = useMemo(
       () => {
@@ -230,7 +250,8 @@ export function DataTable<D extends object>(props: DataTableProps) {
         width: 150,
         maxWidth: 400,
         filter: "fuzzyText",
-        Filter: DefaultColumnFilter
+        Filter: DefaultColumnFilter,
+        Cell: EditableCell,
       }),
       []
     )
@@ -243,6 +264,7 @@ export function DataTable<D extends object>(props: DataTableProps) {
       defaultColumn,
       initialState,
       filterTypes,
+      updateTableData
     };
 
     const {
@@ -281,19 +303,22 @@ export function DataTable<D extends object>(props: DataTableProps) {
       setAllFilters([]);
     };
 
-    const handleRowSelection = (row:rt.Row<any>)=>{
+    const handleRowSelection = useCallback((row:rt.Row<any>)=>{
       return (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(row.id + ` ${event.target.checked?'selected':'unselected'}`);
         toggleRowSelected(row.id, event.target.checked);
-        console.log(state.selectedRowIds);
       }
-    };
+    },[state]);
 
 
     const RenderRow = useCallback(
       ({ index, style }) => {
         const row:any = rows[index]
         prepareRow(row)
+        const isSomeSelected = row.isSomeSelected;
+        const isSelected = row.isSelected;
+        if (isSomeSelected) {
+          console.log(`${row.id} someSelected`);
+        }
         return (
           <StyledTableRow
             {...row.getRowProps({
@@ -302,11 +327,17 @@ export function DataTable<D extends object>(props: DataTableProps) {
             onClick={()=>onClick(row)}
           >
             {props.rowMenu?<StyledTableCell style={{width:50}}>
-              {props.rowMenu}
+              {props.rowMenu([row])}
             </StyledTableCell>:null}
+
             <StyledTableCell style={{width:50}}>
-              <IndeterminateCheckbox checked={row.isSelected} onChange={handleRowSelection(row)}/>
+              {isSomeSelected?(
+                <Checkbox indeterminate={true} onChange={handleRowSelection(row)}/>
+              ) : (
+                <Checkbox checked={isSelected} onChange={handleRowSelection(row)}/>
+              )}
             </StyledTableCell>
+
             {row.cells.map((cell:any, rn:number) => {
               return (
                 <StyledTableCell key={rn} style={{width:cell.column.width}}>
@@ -337,11 +368,11 @@ export function DataTable<D extends object>(props: DataTableProps) {
           </StyledTableRow>
         )
       },
-      [prepareRow, rows]
+      [prepareRow, rows, state]
     )
 
     // Render the UI for your table
-    return (<div style={{width:'100%', height:'100%', overflowX:'scroll', overflowY:'auto'}}>
+    return (<div style={{width:'100%', height:'100%', overflowX:'scroll', overflowY:'scroll'}}>
       <Stack direction="row" alignItems="center" spacing={1}>
         <PopupPanel buttonContent={<Button color="primary" size="small"><ViewColumnRounded/> Columns</Button>}>
           <Card>
@@ -359,7 +390,6 @@ export function DataTable<D extends object>(props: DataTableProps) {
                   </ListItemButton>
                 </ListItem>
               ))}
-
             </CardContent>
           </Card>
         </PopupPanel>
@@ -387,16 +417,17 @@ export function DataTable<D extends object>(props: DataTableProps) {
           globalFilter={state.globalFilter}
           setGlobalFilter={setGlobalFilter}/>
       </Stack>
+
       <Box my={2}/>
+
       <StyledTable {...getTableProps()}>
         <div>
           {headerGroups.map((headerGroup:rt.HeaderGroup, i:number) => (
             <StyledTableRow key={i} style={{minWidth:'100%', width:'max-content', display:'flex'}}>
               {props.rowMenu?<StyledTableCell style={{width:50}}>
-                #
-              </StyledTableCell>:null}
+              {props.rowMenu(rows)} </StyledTableCell>:null}
               <StyledTableCell style={{width:50}}>
-                <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
+                <Checkbox {...getToggleAllRowsSelectedProps()} />
               </StyledTableCell>:
               {headerGroup.headers.map((column:any) => (
                 <StyledTableCell key={column.id} style={{width:column.width}}>

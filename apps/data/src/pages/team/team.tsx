@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Paper, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs } from "@mui/material";
+import { Alert, AppBar, Backdrop, Box, Button, Card, CardContent, CardHeader, CircularProgress, Menu, Paper, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs } from "@mui/material";
 import { IUser, EventDataMap, IEventData } from "@psni/models";
 
 import { DataTable,IconMenu, Page, PopupPieChart, PopupPanel, SelectColumnFilter, TabPanel, uniqueValues, UploadData} from "@psni/sharedui";
 import * as d3 from "d3";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { RouteComponentProps, useHistory } from "react-router-dom";
 import { Row } from "react-table";
 import { useUser } from "../../hooks/userApi";
 import { useUsersList } from "../../hooks/useUsersList";
 import ScoreCard from "./scorecard";
 import deepEqual from  'deep-equal';
+import * as Excel from 'exceljs';
+import FileSaver from 'file-saver';
 
 function a11yProps(suffix:string, index:number) {
   return {
@@ -66,7 +68,9 @@ export function TeamPage (props:RouteComponentProps) {
   const [customData, setCustomData] = useState<Map<string, EventDataMap>>();
   const { user }= useUser('me');
   const {users, isLoading, error} = useUsersList();
+  const [updatedData, setUpdatedData] = useState<Array<any>>(users);
   const history = useHistory();
+
 
   const {columns, usersData} = useMemo(()=>{
     const columns:any = [
@@ -155,7 +159,7 @@ export function TeamPage (props:RouteComponentProps) {
       }
     ];
 
-    const usersData = [...users];
+    const usersData = updatedData.length==0?[...users]:[...updatedData];
     if (!customData) return{columns, usersData};
 
     const usrIndex = d3.group(usersData, u=>u.email);
@@ -201,8 +205,24 @@ export function TeamPage (props:RouteComponentProps) {
     }
     console.log(`Joined data for ${jcount} events of ${tcount} records`);
     return {columns, usersData};
-  }, [users, customData]);
+  }, [users, updatedData, customData]);
 
+
+  // When our cell renderer calls updateTableData, we'll use
+  // the rowIndex, columnId and new value to update the
+  // original data
+  const updateUsersData = (rowIndex:any, columnId:any, value:any) => {
+    const updatedData = usersData.map((row:any, index:any) => {
+        if (index === rowIndex) {
+          return {
+            ...usersData[rowIndex],
+            [columnId]: value,
+          }
+        }
+        return row
+      })
+    setUpdatedData(updatedData);
+  };
 
   const handleTabChange = (_event: React.SyntheticEvent<Element, Event>, index:number)=>{
     setTabIndex(index);
@@ -216,6 +236,27 @@ export function TeamPage (props:RouteComponentProps) {
     const usr=row.original;
     history.push(`/user/${usr.id}`);
   }
+
+
+  const performRowAction = (op:string, rows:any)=>{
+    // console.log(op + ` ${Object.keys(row)}`);
+    if (op==='Export'){
+      const lines:any=[];
+      rows.forEach((row:any)=>{
+        if (row.subRows && row.subRows.length>0){
+          row.subRows.forEach((r:any)=>{
+            if (row.isSomeSelected && r.isSelected)
+              lines.push(JSON.stringify(r));
+          })
+        } else {
+          lines.push(row.cells.map((c:any)=>c.value).join(','));
+        }
+      });
+      const file = new File(lines, "data.txt", {type: "text/plain;charset=utf-8"});
+      FileSaver.saveAs(file);
+    }
+  }
+
 
   return <Page>
     <AppBar position="static">
@@ -235,7 +276,7 @@ export function TeamPage (props:RouteComponentProps) {
     {error?<Alert color="error">{error}</Alert>:null}
     <div style={{height:'100%', display:'flex'}}>
       <TabPanel value={tabIndex} index={0}>
-        <ScoreCard user={user} users={users}/>
+        <ScoreCard user={user} users={usersData}/>
       </TabPanel>
       <TabPanel value={tabIndex} index={1} fullHeight>
         <Card sx={{mx:2, my:1}} elevation={0} variant="outlined">
@@ -250,7 +291,17 @@ export function TeamPage (props:RouteComponentProps) {
           <Box sx={{px:2, position:'absolute', top:0, bottom:0, left:0, right:0}}>
             <Card>
               <CardContent>
-                <DataTable data={usersData} columns={columns} height={800}/>
+                <DataTable data={usersData} columns={columns} height={800}
+                  updateTableData={updateUsersData}
+                  rowMenu={(rows:any)=>{
+
+                    return <IconMenu options={[
+                        'Export',
+                        //rows.length<1?(row.subRows.length>0?'Bulk Update':''):,
+                      ]}
+                      onClick={(op:string)=>performRowAction(op, rows)}
+                    />
+                  }}/>
               </CardContent>
             </Card>
           </Box>

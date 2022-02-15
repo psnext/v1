@@ -9,6 +9,7 @@ interface IconMenuProps {
   options:Array<string>;
   selectedOption?: string;
   itemHeight?:number;
+  onClick?:(option:string)=>void;
 }
 
 export function IconMenu(props: IconMenuProps) {
@@ -19,9 +20,17 @@ export function IconMenu(props: IconMenuProps) {
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleOptionClick = (option:string) => {
+    if (props.onClick) {
+      props.onClick(option);
+    }
+    handleClose();
+  }
 
   return (
     <div>
@@ -51,9 +60,9 @@ export function IconMenu(props: IconMenuProps) {
         }}
       >
         {options.map((option) => (
-          <MenuItem key={option} selected={option === selectedOption} onClick={handleClose}>
+          option!==''?<MenuItem key={option} selected={option === selectedOption} onClick={(e)=>handleOptionClick(option)}>
             {option}
-          </MenuItem>
+          </MenuItem>:null
         ))}
       </Menu>
     </div>

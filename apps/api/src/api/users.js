@@ -266,6 +266,11 @@ userApiRouter.get('/:id', requireSession, async (req, res)=>{
   }
 });
 
+
+userApiRouter.post('/:id/details', requirePermission(['Users.Write.All']), async(req, res)=>{
+    
+})
+
 userApiRouter.get('/:id/photo', requireSession, async (req, res)=>{
   const {log} = req.app;
   try {
