@@ -219,6 +219,111 @@
       "tags": [],
       "implicitDependencies": ["data"]
     },
+    "hackathon": {
+      "root": "apps/hackathon",
+      "sourceRoot": "apps/hackathon/src",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/web:webpack",
+          "outputs": ["{options.outputPath}"],
+          "defaultConfiguration": "production",
+          "options": {
+            "compiler": "babel",
+            "outputPath": "dist/apps/hackathon",
+            "index": "apps/hackathon/src/index.html",
+            "baseHref": "/",
+            "main": "apps/hackathon/src/main.js",
+            "polyfills": "apps/hackathon/src/polyfills.js",
+            "tsConfig": "apps/hackathon/tsconfig.app.json",
+            "assets": [
+              "apps/hackathon/src/favicon.ico",
+              "apps/hackathon/src/assets"
+            ],
+            "styles": ["apps/hackathon/src/styles.css"],
+            "scripts": [],
+            "webpackConfig": "@nrwl/react/plugins/webpack"
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "apps/hackathon/src/environments/environment.js",
+                  "with": "apps/hackathon/src/environments/environment.prod.js"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/web:dev-server",
+          "options": {
+            "buildTarget": "hackathon:build",
+            "hmr": true,
+            "proxyConfig": "apps/hackathon/proxy.conf.json"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "hackathon:build:production",
+              "hmr": false
+            }
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/hackathon/**/*.{ts,tsx,js,jsx}"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/hackathon"],
+          "options": {
+            "jestConfig": "apps/hackathon/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "build-docker": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "docker build -f apps/hackathon/Dockerfile -t psni_hackathon .",
+                "forwardAllArgs": false
+              },
+              "docker tag psni_hackathon gcr.io/{args.projectid}/psnextv1-{args.branch}-hackathon:{args.sha}",
+              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-hackathon:{args.sha}"
+            ],
+            "parallel": false
+          }
+        },
+        "k8s-deploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              "find ./apps/hackathon/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+              "find ./apps/hackathon/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+              "find ./apps/hackathon/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
+              {
+                "command": "kubectl kustomize ./apps/hackathon/k8s",
+                "forwardAllArgs": false
+              },
+              "kubectl apply -k ./apps/hackathon/k8s -n {args.branch}"
+            ],
+            "parallel": false,
+            "forwardAllArgs": false
+          }
+        }
+      },
+      "tags": []
+    },
     "models": {
       "root": "libs/models",
       "sourceRoot": "libs/models/src",
