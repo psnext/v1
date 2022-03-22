@@ -15,6 +15,12 @@ function useTimer({startTime, interval}){
 }
 export function Welcome({ startTime }) {
   const elapsedTime = useTimer({startTime, interval:1000})
+
+  var days = Math.floor(elapsedTime / 86400); // 86400 = 24 hours * 60 minutes * 60 seconds per day
+  var hours = Math.floor((elapsedTime % 86400) / 3600); // 3600 = 60 minutes * 60 seconds per day
+  var minutes = Math.floor((elapsedTime % 3600) / 60); // 60 = 60 seconds per minute
+  var seconds = Math.floor((elapsedTime % 60));
+
   return (
     <>
       <style
@@ -447,9 +453,9 @@ export function Welcome({ startTime }) {
                     d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
                   />
                 </svg>
-                <span>You&apos;re up and running</span>
+                <span>You&apos;re up and running</span> <span>Time limit: 48:00:00</span>
               </h2>
-              <a href="#commands"> {elapsedTime.toFixed(0)} seconds</a>
+              <a href="#commands"> Elapsed time: {days.toFixed(0)}:{hours.toFixed(0)}:{minutes.toFixed(0)}:{seconds.toFixed(0)} </a>
             </div>
             {/* <div className="logo-container">
               <svg
@@ -465,9 +471,9 @@ export function Welcome({ startTime }) {
 
           <div id="middle-content">
             <div id="learning-materials" className="rounded shadow">
-              <h2>Learning materials</h2>
+              <h2>Useful information</h2>
               <a
-                href="https://nx.dev/getting-started/intro?utm_source=nx-project"
+                href="/assets/instructions.pdf"
                 target="_blank"
                 rel="noreferrer"
                 className="list-item-link"
@@ -486,8 +492,8 @@ export function Welcome({ startTime }) {
                   />
                 </svg>
                 <span>
-                  Documentation
-                  <span> Everything is in there </span>
+                  Instructions
+                  <span> Hackathon Rules </span>
                 </span>
                 <svg
                   fill="none"
@@ -504,7 +510,7 @@ export function Welcome({ startTime }) {
                 </svg>
               </a>
               <a
-                href="https://blog.nrwl.io/?utm_source=nx-project"
+                href="/assets/problemstatements.pdf"
                 target="_blank"
                 rel="noreferrer"
                 className="list-item-link"
@@ -523,8 +529,8 @@ export function Welcome({ startTime }) {
                   />
                 </svg>
                 <span>
-                  Blog
-                  <span> Changelog, features & events </span>
+                  Problem Statements
+                  <span> Themes for the hackathon</span>
                 </span>
                 <svg
                   fill="none"
@@ -541,23 +547,23 @@ export function Welcome({ startTime }) {
                 </svg>
               </a>
               <a
-                href="https://www.youtube.com/c/Nrwl_io/videos?utm_source=nx-project&sub_confirmation=1"
+                href="https://twitter.com/intent/tweet?text=In%20Aspire%20Hackathon%20now&hashtags=AspireHackathon,publicissapient"
                 target="_blank"
                 rel="noreferrer"
                 className="list-item-link"
               >
                 <svg
                   role="img"
-                  viewBox="0 0 24 24"
+                  viewBox="0 0 310 310"
                   fill="currentColor"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <title>YouTube</title>
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  <title>Twitter</title>
+                  <path d="M302.973,57.388c-4.87,2.16-9.877,3.983-14.993,5.463c6.057-6.85,10.675-14.91,13.494-23.73c0.632-1.977-0.023-4.141-1.648-5.434c-1.623-1.294-3.878-1.449-5.665-0.39c-10.865,6.444-22.587,11.075-34.878,13.783c-12.381-12.098-29.197-18.983-46.581-18.983c-36.695,0-66.549,29.853-66.549,66.547c0,2.89,0.183,5.764,0.545,8.598C101.163,99.244,58.83,76.863,29.76,41.204c-1.036-1.271-2.632-1.956-4.266-1.825c-1.635,0.128-3.104,1.05-3.93,2.467c-5.896,10.117-9.013,21.688-9.013,33.461c0,16.035,5.725,31.249,15.838,43.137c-3.075-1.065-6.059-2.396-8.907-3.977c-1.529-0.851-3.395-0.838-4.914,0.033c-1.52,0.871-2.473,2.473-2.513,4.224c-0.007,0.295-0.007,0.59-0.007,0.889c0,23.935,12.882,45.484,32.577,57.229c-1.692-0.169-3.383-0.414-5.063-0.735c-1.732-0.331-3.513,0.276-4.681,1.597c-1.17,1.32-1.557,3.16-1.018,4.84c7.29,22.76,26.059,39.501,48.749,44.605c-18.819,11.787-40.34,17.961-62.932,17.961c-4.714,0-9.455-0.277-14.095-0.826c-2.305-0.274-4.509,1.087-5.294,3.279c-0.785,2.193,0.047,4.638,2.008,5.895c29.023,18.609,62.582,28.445,97.047,28.445c67.754,0,110.139-31.95,133.764-58.753c29.46-33.421,46.356-77.658,46.356-121.367c0-1.826-0.028-3.67-0.084-5.508c11.623-8.757,21.63-19.355,29.773-31.536c1.237-1.85,1.103-4.295-0.33-5.998C307.394,57.037,305.009,56.486,302.973,57.388z" />
                 </svg>
                 <span>
-                  YouTube channel
-                  <span> Nx Show, talks & tutorials </span>
+                  twitter hashtag
+                  <span> #AspireHackathon </span>
                 </span>
                 <svg
                   fill="none"
@@ -654,22 +660,22 @@ export function Welcome({ startTime }) {
               <a
                 id="nx-console"
                 className="button-pill rounded shadow"
-                href="https://marketplace.visualstudio.com/items?itemName=nrwl.angular-console&utm_source=nx-project"
+                href="#"
                 target="_blank"
                 rel="noreferrer"
               >
                 <svg
                   fill="currentColor"
                   role="img"
-                  viewBox="0 0 24 24"
+                  viewBox="0 0 61 61"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <title>Visual Studio Code</title>
-                  <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z" />
+                  <title>Cloud Burner</title>
+                  <path d="M50.752,47.941H13.72C6.155,47.941,0,41.786,0,34.221S6.154,20.5,13.72,20.5c1.233,0,2.466,0.171,3.673,0.511c2.143-5.025,7.094-8.338,12.611-8.338c3.96,0,7.659,1.68,10.27,4.637c1.211-0.511,2.521-0.779,3.833-0.779c5.438,0,9.862,4.424,9.862,9.862c0,0.763-0.092,1.524-0.271,2.275c4.066,1.27,6.916,5.067,6.916,9.411C60.614,43.516,56.19,47.941,50.752,47.941z M13.72,22.5C7.258,22.5,2,27.758,2,34.221c0,6.462,5.258,11.72,11.72,11.72h37.032c4.335,0,7.861-3.527,7.861-7.862c0-3.758-2.676-7.003-6.362-7.715c-0.286-0.056-0.534-0.233-0.679-0.487c-0.145-0.254-0.172-0.558-0.072-0.833c0.311-0.868,0.469-1.759,0.469-2.65c0-4.335-3.527-7.862-7.862-7.862c-1.279,0-2.505,0.302-3.642,0.898c-0.428,0.224-0.952,0.111-1.251-0.268c-2.243-2.853-5.601-4.489-9.21-4.489c-4.992,0-9.441,3.176-11.072,7.902c-0.086,0.252-0.271,0.459-0.512,0.575c-0.24,0.115-0.518,0.131-0.77,0.041C16.366,22.732,15.042,22.5,13.72,22.5z" />
                 </svg>
                 <span>
-                  Install Nx Console
-                  <span>Plugin for VSCode</span>
+                  Cloud Burner
+                  <span>Instructions for using cloud burner accounts</span>
                 </span>
               </a>
               <div id="nx-cloud" className="rounded shadow">
@@ -680,7 +686,7 @@ export function Welcome({ startTime }) {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      d="M120 15V30C103.44 30 90 43.44 90 60C90 76.56 76.56 90 60 90C43.44 90 30 103.44 30 120H15C6.72 120 0 113.28 0 105V15C0 6.72 6.72 0 15 0H105C113.28 0 120 6.72 120 15Z"
+                      d="M50.752,47.941H13.72C6.155,47.941,0,41.786,0,34.221S6.154,20.5,13.72,20.5c1.233,0,2.466,0.171,3.673,0.511c2.143-5.025,7.094-8.338,12.611-8.338c3.96,0,7.659,1.68,10.27,4.637c1.211-0.511,2.521-0.779,3.833-0.779c5.438,0,9.862,4.424,9.862,9.862c0,0.763-0.092,1.524-0.271,2.275c4.066,1.27,6.916,5.067,6.916,9.411C60.614,43.516,56.19,47.941,50.752,47.941z M13.72,22.5C7.258,22.5,2,27.758,2,34.221c0,6.462,5.258,11.72,11.72,11.72h37.032c4.335,0,7.861-3.527,7.861-7.862c0-3.758-2.676-7.003-6.362-7.715c-0.286-0.056-0.534-0.233-0.679-0.487c-0.145-0.254-0.172-0.558-0.072-0.833c0.311-0.868,0.469-1.759,0.469-2.65c0-4.335-3.527-7.862-7.862-7.862c-1.279,0-2.505,0.302-3.642,0.898c-0.428,0.224-0.952,0.111-1.251-0.268c-2.243-2.853-5.601-4.489-9.21-4.489c-4.992,0-9.441,3.176-11.072,7.902c-0.086,0.252-0.271,0.459-0.512,0.575c-0.24,0.115-0.518,0.131-0.77,0.041C16.366,22.732,15.042,22.5,13.72,22.5z"
                       fill="#0E2039"
                     />
                     <path
@@ -689,50 +695,29 @@ export function Welcome({ startTime }) {
                     />
                   </svg>
                   <h2>
-                    NxCloud
-                    <span>Enable faster CI & better DX</span>
+                    Cloud Burner
+                    <span>Use FREE cloud burner account</span>
                   </h2>
                 </div>
                 <p>
-                  You can activate distributed tasks executions and caching by
-                  running:
+                  You can activate your free cloud burner account for this hackathon by visiting:
                 </p>
-                <pre>nx connect-to-nx-cloud</pre>
+                <pre>cloudburner instructions</pre>
                 <a
                   href="https://nx.app/?utm_source=nx-project"
                   target="_blank"
                   rel="noreferrer"
                 >
                   {' '}
-                  What is Nx Cloud?{' '}
+                  What is Cloud Burner?{' '}
                 </a>
               </div>
-              <a
-                id="nx-repo"
-                className="button-pill rounded shadow"
-                href="https://github.com/nrwl/nx?utm_source=nx-project"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <svg
-                  fill="currentColor"
-                  role="img"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-                </svg>
-                <span>
-                  Nx is open source
-                  <span> Love Nx? Give us a star! </span>
-                </span>
-              </a>
             </div>
           </div>
 
           <div id="commands" className="rounded shadow">
-            <h2>Next steps</h2>
-            <p>Here are some things you can do with Nx:</p>
+            <h2>Submission Instructions</h2>
+            <p>Here are some things you can do with once you are finished</p>
             <details>
               <summary>
                 <svg
@@ -748,13 +733,13 @@ export function Welcome({ startTime }) {
                     d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                Add UI library
+                Submit your video
               </summary>
               <pre>
-                <span># Generate UI lib</span>
-                nx g @nrwl/angular:lib ui
-                <span># Add a component</span>
-                nx g @nrwl/angular:component button --project ui
+                <span># upload in box folder</span>
+                <a href="https://lion.box.com/">upload folder</a>
+                <span># naming conventions</span>
+                teamname_video.mp4
               </pre>
             </details>
             <details>
@@ -772,9 +757,12 @@ export function Welcome({ startTime }) {
                     d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                View interactive dependency graph
+                Submit your code
               </summary>
-              <pre>nx dep-graph</pre>
+                <span># upload in box folder</span>
+                <a href="https://lion.box.com/">upload folder</a>
+                <span># naming conventions</span>
+                teamname_code.zip
             </details>
             <details>
               <summary>
@@ -791,15 +779,13 @@ export function Welcome({ startTime }) {
                     d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                Run affected commands
+                Submit screen grabs
               </summary>
               <pre>
-                <span># see what&apos;s been affected by changes</span>
-                nx affected:dep-graph
-                <span># run tests for current changes</span>
-                nx affected:test
-                <span># run e2e tests for current changes</span>
-                nx affected:e2e
+                <span># upload in box folder</span>
+                <a href="https://lion.box.com/">upload folder</a>
+                <span># naming conventions</span>
+                teamname_screens.mp4
               </pre>
             </details>
           </div>
