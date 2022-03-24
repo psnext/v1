@@ -29,17 +29,42 @@ export function App() {
     } else setTeamCodeError(null);
   }
 
-  const onStart = ()=>{
+  const onStart = async ()=>{
     setIsBusy(true);
-    setTimeout(()=>{
-      if (teamname==="test" && teamcode==='1234') {
-        setStartTime(Date.now());
-        return;
-      }
+    // setTimeout(()=>{
+    //   if (teamname==="test" && teamcode==='1234') {
+    //     setStartTime(Date.now());
+    //     return;
+    //   }
 
-      setError('Invalid team name or code. Please try again or contact the organisers for the correct code')
+    //   setError('Invalid team name or code. Please try again or contact the organisers for the correct code')
+    //   setIsBusy(false);
+    // }, 3000)
+
+    try{
+      const res = await fetch('/api/hackathon/start',{
+        method:'POST',
+        body:JSON.stringify({ teamid:teamname, teamcode}),
+        headers:{
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        setStartTime(Date.parse(data.starttime));
+      } else {
+        setError(data.error || 'Unable to start, please try again.')
+      }
+    } catch(ex) {
+      let data = {error:'Unable to start, please try again.'};
+      setError(data.error);
+      console.error(ex)
+    }
+    finally{
       setIsBusy(false);
-    }, 3000)
+    }
   }
 
   return (
@@ -54,6 +79,7 @@ export function App() {
             {startTime?<Welcome className="hackathon" startTime={startTime} />:<Stack spacing={2}>
               <p>Please enter the your team id &amp; team code to start the hackathon</p>
 
+              <p style={{color:'red'}}>Note: once you login your 48 hour working window will begin.</p>
               {error?<Alert severity='error'>{error}</Alert>:null}
 
               <TextField disabled={isBusy}

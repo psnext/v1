@@ -85,6 +85,9 @@ app.get('/ping', function(_req,res){
   res.status(200).send('pong');
 })
 
+import hackApiRouter from '../api/hackathon';
+app.use('/api/hackathon', hackApiRouter);
+
 import usersApiRouter from '../api/users';
 app.use('/api/users', usersApiRouter);
 import rolesApiRouter from '../api/roles';

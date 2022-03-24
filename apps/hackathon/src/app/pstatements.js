@@ -12,6 +12,7 @@ const ptext=[
       <li>Which existing services and products or new one can help us generate maximum revenue, with minimum updating and refinement?</li>
       <li>What makes this a scaleable idea?</li>
       <li>How would you value this product?</li>
+      <li>How will you determine if this is a good candidate for reuse?</li>
     </ul></>],
   ["Build A Product To Get Customers Back In Stores","Client",<><p><strong>Context:</strong> High streets are dying, malls are emptying, and we all know where most of e-commerce is done, but what will the next normal in retail look like? This is an opportunity to help change already rapidly shifting consumer behaviours. The struggle to remain relevant in this changed environment has never been stronger. Draw on your personal shopping experiences and marry them to your existing PS, business and technology knowledge.</p>
     <p>This scenario asks you to build a digital product as part of an omni-channel experience that gets customers back into stores again</p>
@@ -65,9 +66,9 @@ const ptext=[
     <li>How would you keep them posted on interesting happenings at PS and share content that’s publicly available including our conferences, blogs and podcasts? </li>
     <li>How could you engage them in exclusive content and events? What would an alumni event look like?</li>
     </ul></>],
-  ["Build The Digital “Water Cooler","Client",<><p><strong>Context:</strong>Opportunities to have “water cooler conversations” and learning through observation and casual mentoring are lacking in a WFH world, but super critical for early career professional development. </p>
+  ["Design A Way To Create Informal Digital Connections","Client",<><p><strong>Context:</strong>Opportunities to have learning through observation and casual mentoring are lacking in a WFH world, but super critical for early career professional development. </p>
   <p>It also supports retention by feeling connected to our purpose and culture and is an integral part of the initial hiring process. </p>
-  <p>This scenario asks you to create a product or platform that connects two groups of PS people–new joiners and established colleagues for casual meetups and networking </p>
+  <p>This scenario asks you to create a product or platform that connects two groups of PS people–new joiners and established colleagues for casual meetups and networking</p>
   <strong>Think about:</strong><ul>
     <li>How can we use people movement trends, outlook calendars, and office location data to facilitate informal connections as we scale and move to a hybrid return to office?</li>
     <li>What can we do to make it relevant to our Early Careers cohort, new joiners and, well, everybody? </li>
