@@ -1,4 +1,7 @@
+import { Typography } from '@mui/material';
 import {useState, useEffect} from 'react';
+import ProblemStatements from './pstatements';
+import SimpleDialog from './sdialog';
 
 function useTimer({startTime, interval}){
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -199,6 +202,7 @@ export function Welcome({ startTime }) {
       transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
       transition-duration: 150ms;
       width: 100%;
+      cursor: pointer;
     }
     .list-item-link svg:first-child {
       margin-right: 1rem;
@@ -376,7 +380,7 @@ export function Welcome({ startTime }) {
       width: 100%;
     }
     details pre > span {
-      color: rgba(181, 181, 181, 1);
+      color: rgb(162 214 234);
       display: block;
     }
     summary {
@@ -422,7 +426,6 @@ export function Welcome({ startTime }) {
         display: flex;
       }
       #middle-content {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
           `,
@@ -472,10 +475,8 @@ export function Welcome({ startTime }) {
           <div id="middle-content">
             <div id="learning-materials" className="rounded shadow">
               <h2>Useful information</h2>
-              <a
-                href="/assets/instructions.pdf"
-                target="_blank"
-                rel="noreferrer"
+              <SimpleDialog title="Instructions" renderButton={({handleClick})=>(<div
+                onClick={handleClick}
                 className="list-item-link"
               >
                 <svg
@@ -508,11 +509,35 @@ export function Welcome({ startTime }) {
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-              </a>
-              <a
-                href="/assets/problemstatements.pdf"
-                target="_blank"
-                rel="noreferrer"
+              </div>)}>
+                <Typography variant='h4'>Hackathon Instructions</Typography>
+                <br/>
+                <Typography variant="subtitle1"><strong>STEP 1.</strong> Select one Problem Statement from the ones provided that will be where you will focus your work.</Typography>
+                <ul></ul>
+                <Typography variant="subtitle1"><strong>STEP 2.</strong> Utilizing Publicis Sapient's PS How methodology, create a build quality product that addresses the problem area.</Typography>
+                <Typography variant="body1">When applied to our clients' work, the PS How has a lot of depth and rigor. Definitely more than can be captured in 48 hours! So, for the Hackathon, you'll be focused on building a solution that addresses the following key outcomes of the PS How stages:</Typography>
+                <ul>
+                  <li>Ignite &amp; Hunt - Provide a clear statement of what need you are trying to address.</li>
+                  <li>Shape &amp; Incubate - Clearly define the propositions to address that need and what is the plan to test them.</li>
+                  <li>Build - Build a product to demo the solution. Remember, like our client work, your work will be iterative. If you learn something along the way that shifts your thinking, it's okay to refine.</li>
+                </ul>
+                <Typography variant='subtitle1'><strong>STEP 3.</strong> Use the SPEED capabilities (Strategy, Product, Experience, Engineering and Data/AI) to create your solution.</Typography>
+                <ul>
+                  <li>On the next two pages are some key questions that will help you incorporate SPEED into each step in the PS How.</li>
+                  <li>These questions will also be foundational to how your work is scored (scoring is also provided in this document).</li>
+                  <li>Your team should have also received an email with details on accessing a Cloud BURNER account. This is optional, but provided in case you need it.</li>
+                </ul>
+                <Typography variant='body1' sx={{color:'red'}}><strong>NOTE:</strong> No client code or data should be used on burner accounts or for the Hackathon.</Typography>
+                <Typography variant="subtitle1"><strong>STEP 4.</strong>Record a video explaining your solution and ways of working, complete the <a href="https://lion.box.com/s/7hdowitwjft8w63bn20d1s852yjzqgaa"><u>Presentation Template</u></a> to showcase your insights and work, and submit your code.</Typography>
+                <ul>
+                  <li>You will be judged on how your solution incorporates SPEED and how your team reflected our core values.</li>
+                  <li>Videos should be no longer than 5 minutes. Note: Videos that exceed 5 minutes will have points deducted.</li>
+                  <li>A submission link can be found at the bottom of this website.</li>
+                </ul>
+                <Typography variant='body1' sx={{color:'red'}}>Remember: Each team has 48 hours to complete your work. This will be based on the timer shown when you log in to the Hackathon website.</Typography>
+              </SimpleDialog>
+              <SimpleDialog title="Problem Statements" renderButton={({handleClick})=>(<div
+                onClick={handleClick}
                 className="list-item-link"
               >
                 <svg
@@ -545,7 +570,9 @@ export function Welcome({ startTime }) {
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-              </a>
+              </div>)}>
+                <ProblemStatements/>
+              </SimpleDialog>
               <a
                 href="https://twitter.com/intent/tweet?text=In%20Aspire%20Hackathon%20now&hashtags=AspireHackathon,publicissapient"
                 target="_blank"
@@ -580,7 +607,7 @@ export function Welcome({ startTime }) {
                 </svg>
               </a>
               <a
-                href="https://nx.dev/tutorial/01-create-application?utm_source=nx-project"
+                href="https://lion.box.com/s/3ocatzdrao8utz7jc4n3cjc1w869igu7"
                 target="_blank"
                 rel="noreferrer"
                 className="list-item-link"
@@ -599,8 +626,8 @@ export function Welcome({ startTime }) {
                   />
                 </svg>
                 <span>
-                  Interactive tutorials
-                  <span> Create an app, step-by-step </span>
+                  PS HOW & Core Values
+                  <span> Sheldon </span>
                 </span>
                 <svg
                   fill="none"
@@ -617,7 +644,7 @@ export function Welcome({ startTime }) {
                 </svg>
               </a>
               <a
-                href="https://nxplaybook.com/?utm_source=nx-project"
+                href="https://lion.box.com/s/gdeayfp60rtnwq8f90jctyn3t5wglqkl"
                 target="_blank"
                 rel="noreferrer"
                 className="list-item-link"
@@ -638,8 +665,8 @@ export function Welcome({ startTime }) {
                   />
                 </svg>
                 <span>
-                  Video courses
-                  <span> Nx custom courses </span>
+                  About SPEED
+                  <span> Nigel Vaz </span>
                 </span>
                 <svg
                   fill="none"
@@ -656,68 +683,35 @@ export function Welcome({ startTime }) {
                 </svg>
               </a>
             </div>
-            <div id="other-links">
-              <a
-                id="nx-console"
-                className="button-pill rounded shadow"
-                href="#"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <svg
-                  fill="currentColor"
-                  role="img"
-                  viewBox="0 0 61 61"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <title>Cloud Burner</title>
-                  <path d="M50.752,47.941H13.72C6.155,47.941,0,41.786,0,34.221S6.154,20.5,13.72,20.5c1.233,0,2.466,0.171,3.673,0.511c2.143-5.025,7.094-8.338,12.611-8.338c3.96,0,7.659,1.68,10.27,4.637c1.211-0.511,2.521-0.779,3.833-0.779c5.438,0,9.862,4.424,9.862,9.862c0,0.763-0.092,1.524-0.271,2.275c4.066,1.27,6.916,5.067,6.916,9.411C60.614,43.516,56.19,47.941,50.752,47.941z M13.72,22.5C7.258,22.5,2,27.758,2,34.221c0,6.462,5.258,11.72,11.72,11.72h37.032c4.335,0,7.861-3.527,7.861-7.862c0-3.758-2.676-7.003-6.362-7.715c-0.286-0.056-0.534-0.233-0.679-0.487c-0.145-0.254-0.172-0.558-0.072-0.833c0.311-0.868,0.469-1.759,0.469-2.65c0-4.335-3.527-7.862-7.862-7.862c-1.279,0-2.505,0.302-3.642,0.898c-0.428,0.224-0.952,0.111-1.251-0.268c-2.243-2.853-5.601-4.489-9.21-4.489c-4.992,0-9.441,3.176-11.072,7.902c-0.086,0.252-0.271,0.459-0.512,0.575c-0.24,0.115-0.518,0.131-0.77,0.041C16.366,22.732,15.042,22.5,13.72,22.5z" />
-                </svg>
-                <span>
-                  Cloud Burner
-                  <span>Instructions for using cloud burner accounts</span>
-                </span>
-              </a>
-              <div id="nx-cloud" className="rounded shadow">
-                <div>
-                  <svg
-                    viewBox="0 0 120 120"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M50.752,47.941H13.72C6.155,47.941,0,41.786,0,34.221S6.154,20.5,13.72,20.5c1.233,0,2.466,0.171,3.673,0.511c2.143-5.025,7.094-8.338,12.611-8.338c3.96,0,7.659,1.68,10.27,4.637c1.211-0.511,2.521-0.779,3.833-0.779c5.438,0,9.862,4.424,9.862,9.862c0,0.763-0.092,1.524-0.271,2.275c4.066,1.27,6.916,5.067,6.916,9.411C60.614,43.516,56.19,47.941,50.752,47.941z M13.72,22.5C7.258,22.5,2,27.758,2,34.221c0,6.462,5.258,11.72,11.72,11.72h37.032c4.335,0,7.861-3.527,7.861-7.862c0-3.758-2.676-7.003-6.362-7.715c-0.286-0.056-0.534-0.233-0.679-0.487c-0.145-0.254-0.172-0.558-0.072-0.833c0.311-0.868,0.469-1.759,0.469-2.65c0-4.335-3.527-7.862-7.862-7.862c-1.279,0-2.505,0.302-3.642,0.898c-0.428,0.224-0.952,0.111-1.251-0.268c-2.243-2.853-5.601-4.489-9.21-4.489c-4.992,0-9.441,3.176-11.072,7.902c-0.086,0.252-0.271,0.459-0.512,0.575c-0.24,0.115-0.518,0.131-0.77,0.041C16.366,22.732,15.042,22.5,13.72,22.5z"
-                      fill="#0E2039"
-                    />
-                    <path
-                      d="M120 30V105C120 113.28 113.28 120 105 120H30C30 103.44 43.44 90 60 90C76.56 90 90 76.56 90 60C90 43.44 103.44 30 120 30Z"
-                      fill="white"
-                    />
-                  </svg>
-                  <h2>
-                    Cloud Burner
-                    <span>Use FREE cloud burner account</span>
-                  </h2>
-                </div>
-                <p>
-                  You can activate your free cloud burner account for this hackathon by visiting:
-                </p>
-                <pre>cloudburner instructions</pre>
-                <a
-                  href="https://nx.app/?utm_source=nx-project"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {' '}
-                  What is Cloud Burner?{' '}
-                </a>
-              </div>
-            </div>
           </div>
 
           <div id="commands" className="rounded shadow">
             <h2>Submission Instructions</h2>
-            <p>Here are some things you can do with once you are finished</p>
+            <SimpleDialog title={'Instructions to Submit your Video, Presentation and Code'}  renderButton={({handleClick})=><p onClick={handleClick}>Click here for detailed Instructions</p>}>
+                <ul>
+                  <li><strong>Video instructions:</strong>
+                    <p>Each video should be no longer than 5 minutes and include the following:</p>
+                    <ul>
+                      <li>Introduction to the team</li>
+                      <li>Answers to the core questions from the PS How - feel free to include any insights gathered during your process!</li>
+                        <ul>
+                          <li>Tell us the 'who' and 'why' story of your product: Who are your buyers? What need(s) are you addressing?</li>
+                          <li>What is the proposition(s) to address that need? How did you test them?</li>
+                          <li>Show us your solution and tell us how you used SPEED to bring it to life.</li>
+                        </ul>
+                      <li>Share which core value(s) were most relevant to your work and examples of where they came to life.</li>
+                      <li style={{color:'red'}}>Note: Videos that exceed <strong>5</strong> minutes will have points <em>deducted.</em></li>
+                    </ul>
+                  </li>
+                <li><strong>Presentation instructions:</strong>
+                  <ul>
+                    <li>Included <a href="https://lion.box.com/s/7hdowitwjft8w63bn20d1s852yjzqgaa"><u>presentation template</u></a> that should be completed.</li>
+                    <li>Remember to showcase any key insights or decisions that drove your work.</li>
+                  </ul>
+                </li>
+                <li style={{color:'red'}}>Before your <strong>48</strong> hours expires, submit your work! Submit your video, presentation and code to the link below.</li>
+              </ul>
+            </SimpleDialog>
             <details>
               <summary>
                 <svg
@@ -733,59 +727,13 @@ export function Welcome({ startTime }) {
                     d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                Submit your video
+                Submit your entry
               </summary>
               <pre>
-                <span># upload in box folder</span>
-                <a href="https://lion.box.com/">upload folder</a>
-                <span># naming conventions</span>
-                teamname_video.mp4
-              </pre>
-            </details>
-            <details>
-              <summary>
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                Submit your code
-              </summary>
-                <span># upload in box folder</span>
-                <a href="https://lion.box.com/">upload folder</a>
-                <span># naming conventions</span>
-                teamname_code.zip
-            </details>
-            <details>
-              <summary>
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                Submit screen grabs
-              </summary>
-              <pre>
-                <span># upload in box folder</span>
-                <a href="https://lion.box.com/">upload folder</a>
-                <span># naming conventions</span>
-                teamname_screens.mp4
+                <span>Your submission should be named <strong>teamid.zip</strong></span>
+                <span># naming conventions of files inside the zip:</span>
+                <span>teamid-video.mp4, teamid-presentation.pptx, teamid-code.zip</span>
+                <a href="https://lion.app.box.com/f/9cd870ecb1524b15a007f99192dc5397" style={{color:'white', fontSize:'2em'}}><u> &lt;&lt; upload here &gt;&gt; </u></a>
               </pre>
             </details>
           </div>

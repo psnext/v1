@@ -5,9 +5,9 @@ import Welcome from './welcome';
 
 
 export function App() {
-  const [teamname, setTeamName] = useState();
+  const [teamname, setTeamName] = useState('');
   const [teamnameerror, setTeamNameError] = useState('Please enter a valid team name');
-  const [teamcode, setTeamCode] = useState();
+  const [teamcode, setTeamCode] = useState('');
   const [teamcodeerror, setTeamCodeError] = useState('Please enter a valid team code');
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState(null)
@@ -17,7 +17,7 @@ export function App() {
     const tn=e.target.value;
     setTeamName(tn);
     if (tn.trim()==='') {
-      setTeamNameError('Invalid team name');
+      setTeamNameError('Invalid team id');
     } else setTeamNameError(null);
   }
 
@@ -52,14 +52,14 @@ export function App() {
           boxShadow:'0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -2px rgb(0 0 0 / 5%)'}}>
 
             {startTime?<Welcome className="hackathon" startTime={startTime} />:<Stack spacing={2}>
-              <p>Please enter the your team name &amp; team code to start the hackathon</p>
+              <p>Please enter the your team id &amp; team code to start the hackathon</p>
 
               {error?<Alert severity='error'>{error}</Alert>:null}
 
               <TextField disabled={isBusy}
                 required error={teamnameerror?true:false}
                 id="team-name"
-                label="Team Name"
+                label="Team ID"
                 value={teamname}
                 onChange={handleTeamNameChange}
                 type='text'
