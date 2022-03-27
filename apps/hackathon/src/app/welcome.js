@@ -811,12 +811,12 @@ export function Welcome({ startTime }) {
                     d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                Submit your entry
+                Submit your entry (as ASH0###.zip)
               </summary>
               <pre>
-                <span>Your submission should be named <strong>teamid.zip</strong></span>
+                <span>Your submission should be named <strong>ASH0###.zip</strong></span>
                 <span># naming conventions of files inside the zip:</span>
-                <span>teamid-video.mp4, teamid-presentation.pptx, teamid-code.zip</span>
+                <span>ASH0####-video.mp4, ASH0###-presentation.pptx, ASH0###-code.zip</span>
                 <a href="https://lion.app.box.com/f/9cd870ecb1524b15a007f99192dc5397" style={{color:'white', fontSize:'2em'}}><u> &lt;&lt; upload here &gt;&gt; </u></a>
               </pre>
             </details>

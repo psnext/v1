@@ -1,7 +1,10 @@
-import { Box, Button, Container, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Step, StepContent, StepLabel, Stepper, Typography } from '@mui/material';
+import { Autocomplete, Box, Button, CircularProgress, Container, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Step, StepContent, StepLabel, Stepper, TextField, Typography } from '@mui/material';
 import {useHistory} from 'react-router-dom'
 import React from 'react';
 
+
+import useSWR from 'swr';
+const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 
 
@@ -300,7 +303,6 @@ function VerticalLinearStepper({capability}) {
   //const fsteps = steps;
   const [activeStep, setActiveStep] = React.useState(0);
 
-
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -374,11 +376,13 @@ function VerticalLinearStepper({capability}) {
   );
 }
 
+
 export default function RScore() {
   const history = useHistory();
   const [team, setTeam] = React.useState(null);
+  const { data, error } = useSWR('/api/hackathon/data', fetcher);
 
-  const teams = [...new Array(50)].map((d,i)=>({name:`ASH0${100+i}`}));
+  //const teams = [...new Array(50)].map((d,i)=>({name:`ASH0${100+i}`}));
   if (window.localStorage.getItem('isl')===null) {
     history.push('/rlogin');
     return <Container maxWidth='md'>
@@ -388,8 +392,8 @@ export default function RScore() {
 
   const [rname, capability] = (window.localStorage.getItem('rd')||'').split(',');
 
-  const handleTeamChange = (e) => {
-    setTeam(e.target.value);
+  const handleTeamChange = (e,newValue) => {
+    setTeam(newValue);
   }
 
   return <Container fullWidth>
@@ -402,9 +406,20 @@ export default function RScore() {
       <Typography variant='h5'>Reviewer: <strong>{rname}</strong></Typography>
       <Typography variant='h5'>Capability: <strong>{capability}</strong></Typography>
       <hr/>
-      <Grid container spacing={2}>
+      {!data?<Box>
+        <CircularProgress/> Loading...
+      </Box>:<Grid container spacing={2}>
         <Grid item sm={8}>
-          <FormControl fullWidth>
+          <Autocomplete
+            disablePortal
+            id="combo-box-team"
+            options={data.map(t=>({label:t.teamid}))}
+            sx={{ width: '50ch' }}
+            renderInput={(params) => <TextField {...params} label="Team" />}
+            value={team}
+            onChange={handleTeamChange}
+          />
+          {/* <FormControl fullWidth>
             <InputLabel id="team-select-label">Team</InputLabel>
             <Select
               labelId="team-select-label"
@@ -413,15 +428,15 @@ export default function RScore() {
               label="Team"
               onChange={handleTeamChange}
             >
-              {teams.map((t)=><MenuItem key={t.name} value={t.name}>{t.name}</MenuItem>)}
+              {data.map((t)=><MenuItem key={t.teamid} value={t.teamid}>{t.teamid}</MenuItem>)}
             </Select>
-          </FormControl>
+          </FormControl> */}
           {team?<VerticalLinearStepper capability={capability}/>:<span>Please select a Team</span>}
         </Grid>
         <Grid item sm={4}>
 
         </Grid>
-      </Grid>
+      </Grid>}
     </div>
   </Container>
 }

@@ -54,7 +54,7 @@ hackApiRouter.get('/data', async (req, res, next)=>{
   const {pool} = req.app.db;
 
   try {
-    const result = await pool.query(`SELECT teamname, starttime, endtime from ahteams where starttime IS NOT NULL order by starttime asc`);
+    const result = await pool.query(`SELECT teamid, starttime, endtime from ahteams where endtime IS NOT NULL order by starttime asc`);
     return res.send(result.rows);
   } catch (ex) {
     console.error(ex);
