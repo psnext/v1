@@ -456,7 +456,7 @@ export function Welcome({ startTime }) {
                     d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
                   />
                 </svg>
-                <span>You&apos;re up and running</span> <span>Time limit: 48:00:00</span>
+                {days>=2?(<span>Your time is UP </span>):(<><span>You&apos;re up and running</span> <span>Time limit: 2:00:00:00 (2 days)</span> </>)}
               </h2>
               <a href="#commands"> Elapsed time: {days.toFixed(0)}:{hours.toFixed(0)}:{minutes.toFixed(0)}:{seconds.toFixed(0)} </a>
             </div>
@@ -769,7 +769,7 @@ export function Welcome({ startTime }) {
             </div>
           </div>
 
-          <div id="commands" className="rounded shadow">
+          {days<2?<div id="commands" className="rounded shadow">
             <h2>Submission Instructions</h2>
             <SimpleDialog title={'Instructions to Submit your Video, Presentation and Code'}  renderButton={({handleClick})=><p onClick={handleClick}>Click here for detailed Instructions</p>}>
                 <ul>
@@ -820,7 +820,7 @@ export function Welcome({ startTime }) {
                 <a href="https://lion.app.box.com/f/9cd870ecb1524b15a007f99192dc5397" style={{color:'white', fontSize:'2em'}}><u> &lt;&lt; upload here &gt;&gt; </u></a>
               </pre>
             </details>
-          </div>
+          </div>:<Typography variant="h2" style={{color:'red'}}>TIME UP</Typography>}
 
           <p id="love">
             Carefully crafted with
