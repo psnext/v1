@@ -9,7 +9,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 
-import useSWR from 'swr';
+import useSWR,{useSWRConfig} from 'swr';
 import { psdata } from './pstatements';
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
@@ -326,7 +326,9 @@ function VerticalLinearStepper({capability, scoredetails={}, additionalComments=
 
   const handleSubmit = () => {
     if (onSubmit) {
-      onSubmit(details, comments);
+      let ms=0;
+      fsteps.forEach(s=>(ms+=s.maxscore));
+      onSubmit(details, comments, ms);
     }
   };
 
@@ -423,14 +425,41 @@ export default function RScorePage() {
   return <RScore/>
 }
 
+function format(x) {
+  return Number.parseFloat(x).toFixed(2);
+}
+
 function RScore () {
-  const { data, error } = useSWR(`/api/hackathon/data`, fetcher);
-  const [teamid, setTeamId] = React.useState(null);
+  const { mutate } = useSWRConfig();
+  const [remail, capability] = (window.localStorage.getItem('rd')||'').split(',');
+  const { data, error } = useSWR(`/api/hackathon/data?email=${remail}`, fetcher);
+  const [team, setTeam] = React.useState(null);
+  const [isBusy, setIsBusy] = useState(false);
 
-  const handleTeamIdChange = (_e,newValue) => setTeamId(newValue);
+  const handleTeamIdChange = (_e,newValue) => setTeam(newValue);
 
+  const handleScoreChange = async ({scoredetails, comments, maxscore, problemstatement})=>{
+    setIsBusy(true);
+    try{
+      const res = await fetch(`/api/hackathon/rscore`,{
+        method:'POST',
+        headers: { 'Content-Type':'application/json'},
+        body: JSON.stringify({
+          teamid: team.teamid, email:remail, capability, scoredetails, comments, maxscore, problemstatement
+        })
+      });
+
+      if (res.ok) {
+        mutate(`/api/hackathon/data?email=${remail}`);
+      }
+    } catch (ex) {
+      console.error(ex);
+    }
+    finally{
+      setIsBusy(false);
+    }
+  }
   if (data) {
-    const [remail, capability] = (window.localStorage.getItem('rd')||'').split(',');
     return <Container >
     <div style={{
      boxShadow: '0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -446,19 +475,62 @@ function RScore () {
           <Autocomplete
             disablePortal
             id="combo-box-team"
-            options={data.map(t=>(t.teamid))}
+            options={data}
             sx={{ width: '50ch' }}
             renderInput={(params) => <TextField {...params} label="Team" />}
-            value={teamid}
+            value={team?.teamid}
             onChange={handleTeamIdChange}
+            getOptionLabel={(option) => option.teamid}
+            renderOption={(props, option) => (
+              <Box component="li" sx={{}} {...props}>
+                {option.teamid}
+                {option.score?<span>&nbsp;&nbsp;-&nbsp;&nbsp;({format(option.score)}/{format(option.maxscore)})</span>:''}
+              </Box>
+            )}
           />
-          {teamid?null:<span>Please select a Team</span>}
+          {team ?null:<span>Please select a Team</span>}
           <br/><br/>
+          {team && (isBusy ? <CircularProgress/> :(
+            <RScoreContent key={team.teamid} team={data.find(s=>s.teamid===team.teamid)||{}} remail={remail} capability={capability}
+              onSubmit={handleScoreChange}
+            />))
+          }
         </Grid>
         <Grid item sm={4}>
+          {data && <TableContainer component={Paper}>
+          <Table aria-label="score table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Team</TableCell>
+                <TableCell align="right">Score</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.filter(d=>d.score!==null).sort((a,b)=>(b.score-a.score)).map((ts)=>(
+                <TableRow
+                  key={ts.teamid}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {ts.teamid}
+                  </TableCell>
+                  <TableCell align="right">
+                    {ts.score?<Box sx={{position:'relative', height:'1.5em', width:'100%', borderColor:'lightgray', borderWidth:1, borderStyle:'solid'}}>
+                      <Box sx={{position:'absolute', top:0, left:0,bottom:0,
+                        width:`${parseFloat(ts.score+'')*100/(ts.maxscore||1)}%`,
+                        backgroundColor:'#e0e0e0'
+                      }}>
+                      </Box>
+                      {parseFloat(ts.score+'').toFixed(2)}
+                    </Box>:null}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          </TableContainer>}
         </Grid>
      </Grid>
-     {teamid && <RScoreContent team={data.find(s=>s.teamid===teamid)||{}} remail={remail} capability={capability}/>}
     </div>
   </Container>
   }
@@ -471,10 +543,9 @@ function RScore () {
   </Container>
 }
 
-function RScoreContent({team, remail, capability}) {
+function RScoreContent({team, remail, capability, onSubmit}) {
   const {data, error} = useSWR(`/api/hackathon/rscore?email=${remail}`, fetcher);
   const [ps, setPS] = React.useState(null);
-  const [isBusy, setIsBusy] = useState(false);
 
   const teamscore = useMemo(()=>{
     try {
@@ -490,29 +561,18 @@ function RScoreContent({team, remail, capability}) {
 
   const handlePShange = (e) => setPS(e.target.value);
 
-  const handleSubmit =  async (scoredetails, comments) => {
+  const handleSubmit =  async (scoredetails, comments, maxscore) => {
     console.log(scoredetails, comments);
     try{
-      setIsBusy(true);
-      const res = await fetch(`/api/hackathon/rscore`,{
-        method:'POST',
-        headers: { 'Content-Type':'application/json'},
-        body: JSON.stringify({
-          teamid: team.teamid, email:remail, capability, scoredetails, comments, problemstatement: ps
-        })
-      });
-      
+      await onSubmit({scoredetails, comments, maxscore, problemstatement: ps})
     } catch (ex) {
       console.error(ex);
-    }
-    finally{
-      setIsBusy(false);
     }
   }
 
 
   return <Grid key={team.teamid} container spacing={2}>
-    <Grid item sm={8}>
+    <Grid item sm={12}>
     {!data?<CircularProgress/>: <>
       <FormControl sx={{ width: '50ch' }}>
         <InputLabel id="team-select-label">Problem Statements</InputLabel>
@@ -529,35 +589,11 @@ function RScoreContent({team, remail, capability}) {
       <br/>
       {ps?null:<span>Please select the problem statement selected by the Team</span>}
       <br/>
-      {ps && team.teamid?<VerticalLinearStepper capability={capability}
+      {ps && team.teamid?(<VerticalLinearStepper capability={capability}
         additionalComments={teamscore.comments} scoredetails={teamscore.scoredetails}
-        onSubmit={handleSubmit}/>:null}
+        onSubmit={handleSubmit}/>
+      ):null}
       </>}
-    </Grid>
-    <Grid item sm={4}>
-      {data && <TableContainer component={Paper}>
-        <Table aria-label="score table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Team</TableCell>
-              <TableCell align="right">Score</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.sort((a,b)=>(b.score-a.score)).map((ts)=>(
-              <TableRow
-                key={ts.teamid}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {ts.teamid}
-                </TableCell>
-                <TableCell align="right">{ts.score}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </TableContainer>}
     </Grid>
   </Grid>
 }

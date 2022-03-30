@@ -71,12 +71,12 @@ hackApiRouter.get('/rscore', async (req, res, next)=>{
 hackApiRouter.post('/rscore', async (req, res, next)=>{
   const {log} = req.app;
   const {pool} = req.app.db;
-  const {teamid, email, capability, problemstatement, scoredetails, comments} = req.body;
+  const {teamid, email, capability, problemstatement, scoredetails, comments, maxscore} = req.body;
 
   let score=0;
   Object.keys(scoredetails).forEach((k)=>score+=scoredetails[k]);
 
-  console.log({teamid, email, capability, scoredetails, comments, score, problemstatement});
+  console.log({teamid, email, capability, scoredetails, comments, score, problemstatement, maxscore});
 
   if (!teamid || !email || !capability || !scoredetails) return res.status(400).send({error:'Invalid score'});
 
@@ -84,18 +84,17 @@ hackApiRouter.post('/rscore', async (req, res, next)=>{
     const result = await pool.query(`SELECT teamid from ahteamsscores where teamid=$1 AND remail=$2`, [teamid, email]);
     if (result.rowCount===0) {
       log.info('New score');
-      await pool.query(`INSERT into ahteamsscores(teamid, remail, capability, score, scoredetails, comments, problemstatement)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      await pool.query(`INSERT into ahteamsscores(teamid, remail, capability, score, scoredetails, comments, problemstatement, maxscore)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `,[
-        teamid, email, capability, score, scoredetails, comments, problemstatement
+        teamid, email, capability, score, scoredetails, comments, problemstatement, maxscore
       ]);
     } else {
-      await pool.query(`UPDATE ahteamsscores set capability=$1, score=$2, scoredetails=$3, comments=$4, problemstatement=$5 where teamid=$6 AND remail=$7`,[
-        capability, score, scoredetails, comments, problemstatement,
+      await pool.query(`UPDATE ahteamsscores set capability=$1, score=$2, scoredetails=$3, comments=$4, problemstatement=$5, maxscore=$6 where teamid=$7 AND remail=$8`,[
+        capability, score, scoredetails, comments, problemstatement, maxscore,
         teamid, email
       ]);
     }
-
     return res.sendStatus(200);
   } catch(ex) {
     console.error(ex);
@@ -106,10 +105,18 @@ hackApiRouter.post('/rscore', async (req, res, next)=>{
 hackApiRouter.get('/data', async (req, res, next)=>{
   const {log} = req.app;
   const {pool} = req.app.db;
-
+  const email = req.query['email'];
   try {
-    const result = await pool.query(`SELECT teamid, starttime, endtime from ahteams where endtime IS NOT NULL order by starttime asc`);
-    return res.send(result.rows);
+    if (email) {
+      const result = await pool.query(`SELECT ah.teamid, ahs.score, ahs.maxscore, starttime, endtime, ahs.remail as email from ahteams as ah
+      left join ahteamsscores as ahs on (ah.teamid=ahs.teamid and ahs.remail=$1)
+      where endtime IS NOT NULL   order by teamid asc;`,[email]);
+      return res.send(result.rows);
+    } else {
+      const result = await pool.query(`SELECT teamid, starttime, endtime from ahteams
+        where endtime IS NOT NULL order by teamid asc;`);
+      return res.send(result.rows);
+    }
   } catch (ex) {
     console.error(ex);
     return res.sendStatus(500);
