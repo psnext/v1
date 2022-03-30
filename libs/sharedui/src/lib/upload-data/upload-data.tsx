@@ -176,6 +176,20 @@ export function UploadData(props: UploadDataProps) {
         eventdata.push({
           timestamp, key, details,
         })
+
+
+        hdr.forEach((h:any,i:number)=>{
+          const parts=h.toString().split('_');
+          if (parts.length<2 || parts[0]!=='EVENTTYPE') return;
+          eventdata = userdata!.get(parts[1]);
+          if (!eventdata) {
+            eventdata = new Array<IEventData>();
+            userdata!.set(parts[1], eventdata)
+          }
+          eventdata.push({
+            timestamp, key: (parts[1]), details: {VALUE:row.getCell(i).value}
+          })
+        });
         setState({...state, progress:i/worksheet.rowCount});
       }
       console.log(`${selectedFiles[0].name} 'data' contains: ${worksheet.rowCount} rows`);

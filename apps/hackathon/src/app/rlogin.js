@@ -20,7 +20,7 @@ export default function RLogin() {
   }
 
   const handleREmailChange =(e)=>{
-    setREmail(e.target.value);
+    setREmail(e.target.value.toLowerCase());
   }
 
   const handleRCodeChange =(e)=>{

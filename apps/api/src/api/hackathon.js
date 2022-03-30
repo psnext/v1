@@ -49,6 +49,60 @@ hackApiRouter.post('/start', async (req, res, next)=>{
 })
 
 
+hackApiRouter.get('/rscore', async (req, res, next)=>{
+  const {log} = req.app;
+  const {pool} = req.app.db;
+
+  const email = (req.query['email']||'').toLowerCase();
+  try {
+    let result;
+    if (email==='') {
+      result = await pool.query(`SELECT * from ahteamsscores`);
+    } else {
+      result = await pool.query(`SELECT * from ahteamsscores WHERE remail=$1`,[email]);
+    }
+    return res.send(result.rows);
+  } catch (ex) {
+    console.error(ex);
+    return res.sendStatus(500);
+  }
+});
+
+hackApiRouter.post('/rscore', async (req, res, next)=>{
+  const {log} = req.app;
+  const {pool} = req.app.db;
+  const {teamid, email, capability, problemstatement, scoredetails, comments} = req.body;
+
+  let score=0;
+  Object.keys(scoredetails).forEach((k)=>score+=scoredetails[k]);
+
+  console.log({teamid, email, capability, scoredetails, comments, score, problemstatement});
+
+  if (!teamid || !email || !capability || !scoredetails) return res.status(400).send({error:'Invalid score'});
+
+  try {
+    const result = await pool.query(`SELECT teamid from ahteamsscores where teamid=$1 AND remail=$2`, [teamid, email]);
+    if (result.rowCount===0) {
+      log.info('New score');
+      await pool.query(`INSERT into ahteamsscores(teamid, remail, capability, score, scoredetails, comments, problemstatement)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `,[
+        teamid, email, capability, score, scoredetails, comments, problemstatement
+      ]);
+    } else {
+      await pool.query(`UPDATE ahteamsscores set capability=$1, score=$2, scoredetails=$3, comments=$4, problemstatement=$5 where teamid=$6 AND remail=$7`,[
+        capability, score, scoredetails, comments, problemstatement,
+        teamid, email
+      ]);
+    }
+
+    return res.sendStatus(200);
+  } catch(ex) {
+    console.error(ex);
+    return res.status(500).send({error:'Server error. Please try again'});
+  }
+});
+
 hackApiRouter.get('/data', async (req, res, next)=>{
   const {log} = req.app;
   const {pool} = req.app.db;

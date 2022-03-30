@@ -63,6 +63,7 @@ function filterCustomData(rows: Array<Row>, id:any, filterValue:any){
       : true
   })
 }
+
 export function TeamPage (props:RouteComponentProps) {
   const [tabIndex, setTabIndex] = useState(1);
   const [customData, setCustomData] = useState<Map<string, EventDataMap>>();
@@ -156,10 +157,15 @@ export function TeamPage (props:RouteComponentProps) {
         Header: 'Manager',
         accessor: 'details.supervisor_name',
         filter: 'text',
+      },
+      {
+        Header: 'Gender',
+        accessor: 'details.gender',
+        filter: 'text',
       }
     ];
 
-    const usersData = updatedData.length==0?[...users]:[...updatedData];
+    const usersData = updatedData.length===0?[...users]:[...updatedData];
     if (!customData) return{columns, usersData};
 
     const usrIndex = d3.group(usersData, u=>u.email);
@@ -182,8 +188,8 @@ export function TeamPage (props:RouteComponentProps) {
           columns.push({
             Header: el.key,
             accessor: `customdata.${el.key}`,
-            Cell:renderCustomDataCell,
-            filter:filterCustomData
+            Cell: renderCustomDataCell,
+            filter: filterCustomData
           })
         }
         if (!usr.customdata) {

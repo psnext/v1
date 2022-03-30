@@ -5,7 +5,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-const ptext=[
+export const psdata=[
   ["Productize A Solution","Client",<><p><strong>Context:</strong> Our goal is to drive profitable sustainable growth, so we can reward our people (merit increases and bonus), invest in our future and shape our clients’ transformative journeys. Often times people think of that profitable sustainable growth as coming from specific services or large transformations, but there’s an opportunity to take products and solutions we’ve built for one client and scale them across multiple clients.</p><p>This scenario asks you to think about an existing product or service or create a new one that can be profitably scaled across multiple clients with minimum customization required. This could be something relevant to one industry or multiple industries. It’s up to you to decide!</p>
     <strong>Think about:</strong>
     <ul>
@@ -98,7 +98,7 @@ export default function ProblemStatements() {
          vast to explore, think about how to narrow in on actionable, impactful solutions that can solve parts of the scenario
          you select. We can create meaningful and impactful solutions, but your best and brilliant ideas also need to help us
           sustain and push growth – people growth, technological growth and revenue growth. Good luck!</Typography>
-      {ptext.map((p,i)=>(
+      {psdata.map((p,i)=>(
       <Accordion expanded={expanded === `p${i}`} onChange={handleChange(`p${i}`)}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
