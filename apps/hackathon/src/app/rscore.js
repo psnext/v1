@@ -1,9 +1,16 @@
-import { Autocomplete, Box, Button, CircularProgress, Container, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Step, StepContent, StepLabel, Stepper, TextField, Typography } from '@mui/material';
+import { Accordion, Autocomplete, Box, Button, CircularProgress, Container, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Slider, Step, StepContent, StepLabel, Stepper, TextField, Typography } from '@mui/material';
 import {useHistory} from 'react-router-dom'
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 
 import useSWR from 'swr';
+import { psdata } from './pstatements';
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 
@@ -297,11 +304,13 @@ const steps = [
 
 ];
 
-function VerticalLinearStepper({capability}) {
+function VerticalLinearStepper({capability, scoredetails={}, additionalComments='', onSubmit}) {
 
   const fsteps = steps.filter((s)=>(s.capability===capability || s.capability==='Core Values'));
   //const fsteps = steps;
   const [activeStep, setActiveStep] = React.useState(0);
+  const [comments, setComments] = React.useState(additionalComments);
+  const [details, setDetails] = React.useState(scoredetails);
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -315,6 +324,21 @@ function VerticalLinearStepper({capability}) {
     setActiveStep(0);
   };
 
+  const handleSubmit = () => {
+    if (onSubmit) {
+      onSubmit(details, comments);
+    }
+  };
+
+  const handleCommentsChange = (e) => {
+    setComments(e.target.value);
+  }
+
+  const handleScoreChange = (id, score) =>{
+    details[id]=score;
+    setDetails(Object.assign({},details));
+  }
+
   return (
     <Box sx={{ maxWidth: '100%' }}>
       <Stepper activeStep={activeStep} orientation="vertical">
@@ -327,19 +351,17 @@ function VerticalLinearStepper({capability}) {
               //   ) : null
               // }
             >
-              {step.label}
+              {step.label} - ({details[step.id]||0}/{step.maxscore})
             </StepLabel>
             <StepContent>
               {step.description}
               <>
                 <span>Max Score: <strong>{step.maxscore}</strong></span>
                 <Slider
-                  defaultValue={0}
+                  marks step={0.1} min={0} max={step.maxscore}
                   valueLabelDisplay="on"
-                  step={0.1}
-                  marks
-                  min={0}
-                  max={step.maxscore}
+                  value={details[step.id]||0}
+                  onChange={(_e,newValue)=>handleScoreChange(step.id,newValue)}
                 />
               </>
               <Box sx={{ mb: 2 }}>
@@ -364,79 +386,178 @@ function VerticalLinearStepper({capability}) {
           </Step>
         ))}
       </Stepper>
-      {activeStep === steps.length && (
-        <Paper square elevation={0} sx={{ p: 3 }}>
-          <Typography>All steps completed - you&apos;re finished</Typography>
-          <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-            Reset
-          </Button>
-        </Paper>
-      )}
+      <br/>
+      <TextField style={{width:'50ch'}}
+          id="score-comments"
+          label="Additional Comments"
+          multiline
+          rows={4}
+          value={comments}
+          onChange={handleCommentsChange}
+        />
+        {activeStep === fsteps.length && (
+          <Paper square elevation={0} sx={{ p: 3 }}>
+            <Typography>All steps completed - you&apos;re finished</Typography>
+            <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
+              Reset
+            </Button>
+            <Button onClick={handleSubmit} variant='contained' sx={{ mt: 1, mr: 1 }}>
+              Submit
+            </Button>
+          </Paper>
+        )}
     </Box>
   );
 }
 
 
-export default function RScore() {
+export default function RScorePage() {
   const history = useHistory();
-  const [team, setTeam] = React.useState(null);
-  const { data, error } = useSWR('/api/hackathon/data', fetcher);
 
-  //const teams = [...new Array(50)].map((d,i)=>({name:`ASH0${100+i}`}));
   if (window.localStorage.getItem('isl')===null) {
     history.push('/rlogin');
     return <Container maxWidth='md'>
       <a href="/rlogin">Login required</a>
     </Container>
   }
+  return <RScore/>
+}
 
-  const [rname, capability] = (window.localStorage.getItem('rd')||'').split(',');
+function RScore () {
+  const { data, error } = useSWR(`/api/hackathon/data`, fetcher);
+  const [teamid, setTeamId] = React.useState(null);
 
-  const handleTeamChange = (e,newValue) => {
-    setTeam(newValue);
-  }
+  const handleTeamIdChange = (_e,newValue) => setTeamId(newValue);
 
-  return <Container fullWidth>
-     <div style={{
-      boxShadow: '0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      borderRadius: '1.5em', padding:'2em'
-    }}>
-      <Typography variant='h2'>Scoring Sheet</Typography>
-      <hr/>
-      <Typography variant='h5'>Reviewer: <strong>{rname}</strong></Typography>
-      <Typography variant='h5'>Capability: <strong>{capability}</strong></Typography>
-      <hr/>
-      {!data?<Box>
-        <CircularProgress/> Loading...
-      </Box>:<Grid container spacing={2}>
+  if (data) {
+    const [remail, capability] = (window.localStorage.getItem('rd')||'').split(',');
+    return <Container >
+    <div style={{
+     boxShadow: '0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+     borderRadius: '1.5em', padding:'2em'
+   }}>
+     <Typography variant='h2'>Scoring Sheet</Typography>
+     <hr/>
+     <Typography variant='h5'>Reviewer: <strong>{remail}</strong></Typography>
+     <Typography variant='h5'>Capability: <strong>{capability}</strong></Typography>
+     <hr/>
+      <Grid container spacing={2}>
         <Grid item sm={8}>
           <Autocomplete
             disablePortal
             id="combo-box-team"
-            options={data.map(t=>({label:t.teamid}))}
+            options={data.map(t=>(t.teamid))}
             sx={{ width: '50ch' }}
             renderInput={(params) => <TextField {...params} label="Team" />}
-            value={team}
-            onChange={handleTeamChange}
+            value={teamid}
+            onChange={handleTeamIdChange}
           />
-          {/* <FormControl fullWidth>
-            <InputLabel id="team-select-label">Team</InputLabel>
-            <Select
-              labelId="team-select-label"
-              id="team-select"
-              value={team}
-              label="Team"
-              onChange={handleTeamChange}
-            >
-              {data.map((t)=><MenuItem key={t.teamid} value={t.teamid}>{t.teamid}</MenuItem>)}
-            </Select>
-          </FormControl> */}
-          {team?<VerticalLinearStepper capability={capability}/>:<span>Please select a Team</span>}
+          {teamid?null:<span>Please select a Team</span>}
+          <br/><br/>
         </Grid>
         <Grid item sm={4}>
-
         </Grid>
-      </Grid>}
+     </Grid>
+     {teamid && <RScoreContent team={data.find(s=>s.teamid===teamid)||{}} remail={remail} capability={capability}/>}
     </div>
   </Container>
+  }
+
+  return <Container maxWidth="md">
+    <br/>
+    <Box>
+      <CircularProgress/> Loading...
+    </Box>
+  </Container>
+}
+
+function RScoreContent({team, remail, capability}) {
+  const {data, error} = useSWR(`/api/hackathon/rscore?email=${remail}`, fetcher);
+  const [ps, setPS] = React.useState(null);
+  const [isBusy, setIsBusy] = useState(false);
+
+  const teamscore = useMemo(()=>{
+    try {
+      const pscore =data?.find(s=>s.teamid===team.teamid)||{};
+      setPS(pscore.problemstatement);
+      return pscore;
+    } catch(ex) {
+      console.error(ex);
+    }
+    return {};
+  }, [data, team]);
+
+
+  const handlePShange = (e) => setPS(e.target.value);
+
+  const handleSubmit =  async (scoredetails, comments) => {
+    console.log(scoredetails, comments);
+    try{
+      setIsBusy(true);
+      const res = await fetch(`/api/hackathon/rscore`,{
+        method:'POST',
+        headers: { 'Content-Type':'application/json'},
+        body: JSON.stringify({
+          teamid: team.teamid, email:remail, capability, scoredetails, comments, problemstatement: ps
+        })
+      });
+      
+    } catch (ex) {
+      console.error(ex);
+    }
+    finally{
+      setIsBusy(false);
+    }
+  }
+
+
+  return <Grid key={team.teamid} container spacing={2}>
+    <Grid item sm={8}>
+    {!data?<CircularProgress/>: <>
+      <FormControl sx={{ width: '50ch' }}>
+        <InputLabel id="team-select-label">Problem Statements</InputLabel>
+        <Select
+          labelId="ps-select-label"
+          id="[ps]-select"
+          value={ps||''}
+          label="Problem Statements"
+          onChange={handlePShange}
+        >
+          {psdata.map((ps, i)=><MenuItem key={i} value={ps[0]}>{ps[0]}</MenuItem>)}
+        </Select>
+      </FormControl>
+      <br/>
+      {ps?null:<span>Please select the problem statement selected by the Team</span>}
+      <br/>
+      {ps && team.teamid?<VerticalLinearStepper capability={capability}
+        additionalComments={teamscore.comments} scoredetails={teamscore.scoredetails}
+        onSubmit={handleSubmit}/>:null}
+      </>}
+    </Grid>
+    <Grid item sm={4}>
+      {data && <TableContainer component={Paper}>
+        <Table aria-label="score table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Team</TableCell>
+              <TableCell align="right">Score</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.sort((a,b)=>(b.score-a.score)).map((ts)=>(
+              <TableRow
+                key={ts.teamid}
+                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+              >
+                <TableCell component="th" scope="row">
+                  {ts.teamid}
+                </TableCell>
+                <TableCell align="right">{ts.score}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        </TableContainer>}
+    </Grid>
+  </Grid>
 }
