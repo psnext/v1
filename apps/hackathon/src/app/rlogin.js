@@ -27,7 +27,7 @@ export default function RLogin() {
     setRCode(e.target.value);
   }
 
-  const onLogin = ()=>{
+  const onLogin = async ()=>{
     if (capability==='') {
       setError('Please select a capability')
       return;
@@ -43,16 +43,43 @@ export default function RLogin() {
     setError(null);
     setIsBusy(true);
 
-    if (rcode==='aspire123') {
-      window.localStorage.setItem('isl', remail);
-      window.localStorage.setItem('rd',`${remail},${capability}`);
-      setIsLoggedIn(remail);
-      history.push('/rscore');
-    } else {
-      setError('Inavlid code');
-    }
+    try {
+      const res = await fetch('/api/hackathon/rlogin',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          email: remail,
+          code: rcode,
+        })
+      });
 
-    setIsBusy(false);
+      if (res.ok) {
+          window.localStorage.setItem('isl', remail);
+          window.localStorage.setItem('rd',`${remail},${capability}`);
+          setIsLoggedIn(remail);
+          history.push('/rscore');
+          return;
+      } else {
+        setError('Unable to login. Please check your code and try again.');
+      }
+    }
+    catch(ex){
+      setError('Unable to login. Please check your code and try again.')
+    }
+    finally{
+      setIsBusy(false);
+    }
+    // if (rcode==='aspire123') {
+    //   window.localStorage.setItem('isl', remail);
+    //   window.localStorage.setItem('rd',`${remail},${capability}`);
+    //   setIsLoggedIn(remail);
+    //   history.push('/rscore');
+    // } else {
+    //   setError('Inavlid code');
+    // }
+
   }
 
   if (isLoggedIn!==null) {

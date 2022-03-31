@@ -496,9 +496,9 @@ export function DataTable<D extends object>(props: DataTableProps) {
             {RenderRow}
           </rw.FixedSizeList>
         </div>
-        {/* <pre>
+        <pre>
           <code>{JSON.stringify(state, null, 2)}</code>
-        </pre> */}
+        </pre>
       </StyledTable>
       </div>
     )

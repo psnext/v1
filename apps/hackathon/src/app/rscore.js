@@ -11,6 +11,7 @@ import TableRow from '@mui/material/TableRow';
 
 import useSWR,{useSWRConfig} from 'swr';
 import { psdata } from './pstatements';
+import { LogoutButton } from './rlogout';
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 
@@ -466,6 +467,7 @@ function RScore () {
      borderRadius: '1.5em', padding:'2em'
    }}>
      <Typography variant='h2'>Scoring Sheet</Typography>
+     <LogoutButton/>
      <hr/>
      <Typography variant='h5'>Reviewer: <strong>{remail}</strong></Typography>
      <Typography variant='h5'>Capability: <strong>{capability}</strong></Typography>

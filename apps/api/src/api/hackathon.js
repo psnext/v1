@@ -49,6 +49,35 @@ hackApiRouter.post('/start', async (req, res, next)=>{
 })
 
 
+hackApiRouter.post('/rlogin', async (req, res, next)=>{
+  const {log} = req.app;
+  const {pool} = req.app.db;
+  const {email, code} = req.body;
+
+  console.log({email, code});
+
+  if (!email || !code) return res.status(400).send({error:'Invalid teamid or teamcode'});
+
+  try {
+    let result = await pool.query(`SELECT code FROM ahreviewer WHERE email=$1`,[email.toLowerCase()]);
+    if (result.rowCount===0){
+      log.info(`No reviewer: ${email}`);
+      return res.status(400).send({error:'Invalid email or code'});
+    }
+    console.log(result.rows[0]);
+    if (result.rows[0].code!==code) {
+      return res.status(400).send({error:'Invalid email or code'});
+    }
+
+    return res.sendStatus(200);
+
+  } catch(ex) {
+    log.error(`exception for ${email} - ${code}`);
+    log.error(ex);
+    return res.status(500).send({error:'Server error. Please try again'});
+  }
+})
+
 hackApiRouter.get('/rscore', async (req, res, next)=>{
   const {log} = req.app;
   const {pool} = req.app.db;
