@@ -7,6 +7,7 @@ import RLogin from './app/rlogin';
 import RLogout from './app/rlogout';
 import RScore from './app/rscore';
 import useSWR, { SWRConfig } from 'swr'
+import RSummary from './app/rsummary';
 ReactDOM.render(
   <StrictMode>
     <BrowserRouter>
@@ -31,6 +32,11 @@ ReactDOM.render(
               path="/rscore"
               exact
               render={()=><RScore/>}
+            />
+            <Route
+              path="/rsummary"
+              exact
+              render={()=><RSummary/>}
             />
         </Switch>
       </SWRConfig>

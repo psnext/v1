@@ -9,9 +9,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 
-import useSWR,{useSWRConfig} from 'swr';
 import { psdata } from './pstatements';
 import { LogoutButton } from './rlogout';
+import useSWR,{useSWRConfig} from 'swr';
+import Bar from './bar';
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 
@@ -517,14 +518,7 @@ function RScore () {
                     {ts.teamid}
                   </TableCell>
                   <TableCell align="right">
-                    {ts.score?<Box sx={{position:'relative', height:'1.5em', width:'100%', borderColor:'lightgray', borderWidth:1, borderStyle:'solid'}}>
-                      <Box sx={{position:'absolute', top:0, left:0,bottom:0,
-                        width:`${parseFloat(ts.score+'')*100/(ts.maxscore||1)}%`,
-                        backgroundColor:'#e0e0e0'
-                      }}>
-                      </Box>
-                      {parseFloat(ts.score+'').toFixed(2)}
-                    </Box>:null}
+                    {ts.score?<Bar score={ts.score} maxscore={ts.maxscore}/>:null}
                   </TableCell>
                 </TableRow>
               ))}
