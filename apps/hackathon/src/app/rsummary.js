@@ -99,7 +99,6 @@ function ScoringTable() {
        teams.push(team);
      }
      d.scoredetails.c=((d.scoredetails.c1||0) + (d.scoredetails.c2||0) + (d.scoredetails.c3||0) + (d.scoredetails.c4||0) + (d.scoredetails.c5||0));
-     console.log(d.scoredetails);
      team.details.push({email:d.remail, capability: d.capability, score:d.score, maxscore: d.maxscore, comments:d.comments, scoredetails:d.scoredetails });
      switch(d.capability) {
         case 'Strategy':{
@@ -131,14 +130,12 @@ function ScoringTable() {
      team.c+=d.scoredetails.c;
   })
 
-  console.log(teams);
   teams.forEach(t=>{
     t.s/=(t.scount||1); t.p/=(t.pcount||1); t.x/=(t.xcount||1); t.e/=(t.ecount||1); t.d/=(t.dcount||1);
     t.c/=t.details.length;
     t.total=t.s+t.p+t.x+t.e+t.d+t.c;
     t.maxscore=24;
   })
-  console.log(teams);
   return  (
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table">
@@ -156,7 +153,7 @@ function ScoringTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {teams.map((row) => (
+          {teams.sort((a,b)=>b.total-a.total).map((row) => (
             <Row key={row.teamid} row={row} />
           ))}
         </TableBody>
@@ -210,7 +207,7 @@ function Row(props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.details.map((drow) => (
+                  {row.details.sort((a,b)=>b.score-a.score).map((drow) => (
                     <TableRow key={drow.email}>
                       <TableCell component="th" scope="row">
                         {drow.email}
