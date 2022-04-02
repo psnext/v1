@@ -467,7 +467,8 @@ function RScore () {
      boxShadow: '0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
      borderRadius: '1.5em', padding:'2em'
    }}>
-     <Typography variant='h2'>Scoring Sheet</Typography>
+     <Typography variant='h3'>Aspire Speed Hackathon</Typography>
+     <Typography variant='h4'>Scoring Sheet</Typography>
      <LogoutButton/>
      <hr/>
      <Typography variant='h5'>Reviewer: <strong>{remail}</strong></Typography>

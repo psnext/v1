@@ -31,7 +31,8 @@ export default function RSummary() {
     <Box sx={{ boxShadow: '0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       borderRadius: '1.5em'
     }}>
-      <Typography variant='h2'>Scoring Summary</Typography>
+      <Typography variant='h3'>Aspire Speed Hackathon</Typography>
+      <Typography variant='h4'>Scoring Summary</Typography>
       <hr/>
       <ScoringTable/>
     </Box>
@@ -99,7 +100,8 @@ function ScoringTable() {
        teams.push(team);
      }
      d.scoredetails.c=((d.scoredetails.c1||0) + (d.scoredetails.c2||0) + (d.scoredetails.c3||0) + (d.scoredetails.c4||0) + (d.scoredetails.c5||0));
-     team.details.push({email:d.remail, capability: d.capability, score:d.score, maxscore: d.maxscore, comments:d.comments, scoredetails:d.scoredetails });
+     team.details.push({email:d.remail, capability: d.capability, score:d.score, maxscore: d.maxscore, comments:d.comments,
+      problemstatement:d.problemstatement, scoredetails:d.scoredetails });
      switch(d.capability) {
         case 'Strategy':{
           team.scount+=1;
@@ -131,6 +133,11 @@ function ScoringTable() {
   })
 
   teams.forEach(t=>{
+    var ps=new Set(t.details.map(d=>d.problemstatement));
+    t.problemstatement='';
+    for(const p of ps.values()){
+      t.problemstatement+=' '+p;
+    }
     t.s/=(t.scount||1); t.p/=(t.pcount||1); t.x/=(t.xcount||1); t.e/=(t.ecount||1); t.d/=(t.dcount||1);
     t.c/=t.details.length;
     t.total=t.s+t.p+t.x+t.e+t.d+t.c;
@@ -179,7 +186,8 @@ function Row(props) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.teamid}
+          {row.teamid}<br/>
+          <small><em>{row.problemstatement}</em></small>
         </TableCell>
         <TableCell align="right"><Bar score={row.total} maxscore={24}/></TableCell>
         <TableCell align="right"><Bar score={row.s} maxscore={2}/></TableCell>
@@ -193,9 +201,9 @@ function Row(props) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
-              <Typography variant="h6" gutterBottom component="div">
+              {/* <Typography variant="caption" gutterBottom component="div">
                 Details
-              </Typography>
+              </Typography> */}
               <Table size="small" aria-label="scores">
                 <TableHead>
                   <TableRow>
