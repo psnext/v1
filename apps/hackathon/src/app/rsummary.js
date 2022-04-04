@@ -152,7 +152,7 @@ function ScoringTable() {
   if (q.indexOf('sort=group')!==-1) {
     sorted = teams.sort((a,b)=>{
       const ga = findgroup(a.teamid); const gb = findgroup(b.teamid);
-      return ga===gb?(b.total-a.total):(ga>gb?-1:1);
+      return ga===gb?(b.total-a.total):(ga>gb?1:-1);
     })
   } else {
     sorted = teams.sort((a,b)=>b.total-a.total);
