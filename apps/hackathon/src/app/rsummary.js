@@ -88,7 +88,7 @@ function ScoringTable() {
     return <CircularProgress/>
   }
   if (error) {
-    return <Alert severity='error'>Ubale to fetch the scores: {error}</Alert>
+    return <Alert severity='error'>Unable to fetch the scores: {error}</Alert>
   }
 
   const teamindex = {}
@@ -145,6 +145,19 @@ function ScoringTable() {
     t.total=t.s+t.p+t.x+t.e+t.d+t.c;
     t.maxscore=24;
   })
+
+  const q=(window.location.search||'').toLowerCase();
+  let sorted = teams;
+
+  if (q.indexOf('sort=group')!==-1) {
+    sorted = teams.sort((a,b)=>{
+      const ga = findgroup(a.teamid); const gb = findgroup(b.teamid);
+      return ga===gb?(b.total-a.total):(ga>gb?-1:1);
+    })
+  } else {
+    sorted = teams.sort((a,b)=>b.total-a.total);
+  }
+
   return  (
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table">
@@ -162,7 +175,7 @@ function ScoringTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {teams.sort((a,b)=>b.total-a.total).map((row) => (
+          {sorted.map((row) => (
             <Row key={row.teamid} row={row} />
           ))}
         </TableBody>
