@@ -15,6 +15,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import useSWR,{useSWRConfig} from 'swr';
 import Bar from './bar';
+import {findgroup} from './groups';
+
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 export default function RSummary() {
@@ -186,7 +188,7 @@ function Row(props) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.teamid}<br/>
+          {row.teamid} - {findgroup(row.teamid)}<br/>
           <small><em>{row.problemstatement}</em></small>
         </TableCell>
         <TableCell align="right"><Bar score={row.total} maxscore={24}/></TableCell>

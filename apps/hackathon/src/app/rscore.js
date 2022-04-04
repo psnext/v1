@@ -13,6 +13,8 @@ import { psdata } from './pstatements';
 import { LogoutButton } from './rlogout';
 import useSWR,{useSWRConfig} from 'swr';
 import Bar from './bar';
+import {findgroup} from './groups';
+
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 
@@ -481,6 +483,7 @@ function RScore () {
             id="combo-box-team"
             options={data}
             sx={{ width: '50ch' }}
+            groupBy={(option) => findgroup(option.teamid)}
             renderInput={(params) => <TextField {...params} label="Team" />}
             value={team?.teamid}
             onChange={handleTeamIdChange}

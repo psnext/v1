@@ -1,0 +1,88 @@
+const groups = [["ASH0102","ASH0103", "ASH0105", "ASH0106", "ASH0107", "ASH0108", "ASH0109", "ASH0112", "ASH0114", "ASH0115", "ASH0116" ],
+["ASH0118","ASH0119","ASH0120","ASH0122","ASH0123","ASH0125","ASH0126","ASH0128","ASH0129","ASH0130","ASH0131"],
+["ASH0133","ASH0134","ASH0136","ASH0138","ASH0140","ASH0142","ASH0143","ASH0144","ASH0145","ASH0146","ASH0148"],
+["ASH0149","ASH0150","ASH0151","ASH0153","ASH0154","ASH0155","ASH0156","ASH0157","ASH0159","ASH0160","ASH0161"],
+[
+  "ASH0164",
+  "ASH0167",
+  "ASH0168",
+  "ASH0171",
+  "ASH0173",
+  "ASH0174",
+  "ASH0180",
+  "ASH0181",
+  "ASH0185",
+  "ASH0186",
+  "ASH0187"
+],
+[
+  "ASH0188",
+  "ASH0190",
+  "ASH0192",
+  "ASH0198",
+  "ASH0199",
+  "ASH0201",
+  "ASH0206",
+  "ASH0208",
+  "ASH0209",
+  "ASH0210",
+  "ASH0211",
+],
+[
+  "ASH0212",
+  "ASH0219",
+  "ASH0220",
+  "ASH0221",
+  "ASH0222",
+  "ASH0223",
+  "ASH0224",
+  "ASH0227",
+  "ASH0230",
+  "ASH0231",
+],
+[
+  "ASH0232",
+  "ASH0233",
+  "ASH0234",
+  "ASH0239",
+  "ASH0240",
+  "ASH0244",
+  "ASH0245",
+  "ASH0247",
+  "ASH0248",
+  "ASH0249"
+],
+[
+  "ASH0251",
+  "ASH0252",
+  "ASH0253",
+  "ASH0255",
+  "ASH0258",
+  "ASH0259",
+  "ASH0260",
+  "ASH0261",
+  "ASH0265",
+  "ASH0266",
+],
+[
+  "ASH0267",
+  "ASH0269",
+  "ASH0271",
+  "ASH0272",
+  "ASH0273",
+  "ASH0274",
+  "ASH0275",
+  "ASH0278",
+  "ASH0281",
+  "ASH0282"
+]];
+
+
+export function findgroup(teamid) {
+  for(let i=0;i<groups.length;i++){
+    if (groups[i].indexOf(teamid)!== -1) {
+      return `Group${i+1}`;
+    }
+  }
+  return '';
+}
