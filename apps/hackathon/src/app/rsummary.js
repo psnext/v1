@@ -188,7 +188,7 @@ function Row(props) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.teamid} - {findgroup(row.teamid)}<br/>
+          {row.teamid} - <small>{findgroup(row.teamid)}</small><br/>
           <small><em>{row.problemstatement}</em></small>
         </TableCell>
         <TableCell align="right"><Bar score={row.total} maxscore={24}/></TableCell>
