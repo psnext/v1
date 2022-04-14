@@ -11,7 +11,7 @@ export function TabPanel(props: TabPanelProps) {
   const { children, value, index,fullHeight, ...other } = props;
 
   return (
-    <div style={{position: 'relative', height:fullHeight?'100%':'auto', width:'100%'}}
+    <div style={{position: 'relative', height:fullHeight?'100%':'auto', width:'100%', display:'flex', flexDirection:'column', overflow:'scroll'}}
       role="tabpanel"
       hidden={value !== index}
       id={`full-width-tabpanel-${index}`}

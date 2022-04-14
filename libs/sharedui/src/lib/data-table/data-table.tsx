@@ -372,7 +372,7 @@ export function DataTable<D extends object>(props: DataTableProps) {
     )
 
     // Render the UI for your table
-    return (<div style={{width:'100%', height:'100%', overflowX:'scroll', overflowY:'scroll'}}>
+    return (<div style={{width:'100%', height:'100%', overflowX:'scroll', overflowY:'hidden'}} className="customscroll">
       <Stack direction="row" alignItems="center" spacing={1}>
         <PopupPanel buttonContent={<Button color="primary" size="small"><ViewColumnRounded/> Columns</Button>}>
           <Card>

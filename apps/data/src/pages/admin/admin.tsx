@@ -276,22 +276,23 @@ export function Admin (props:AdminProps){
       onClose={handleSnackBarClose}
       message={state.snackbarmessage}
     />
-
-    <TabPanel value={tabIndex} index={0} fullHeight>
-    </TabPanel>
-    <TabPanel value={tabIndex} index={1} fullHeight>
-      <Card sx={{mx:2, my:1}} elevation={0} variant="outlined">
-        <CardContent>
-          <Typography variant="h4">Data</Typography>
-          <UploadUsers/>
-          <hr/>
-          <CalendarChart data={caldata} options={{width:400}} onClick={console.log} sx={{background:'white'}}/>
-        </CardContent>
-      </Card>
-    </TabPanel>
-    <TabPanel value={tabIndex} index={2} fullHeight>
-      <UserAdminPanel/>
-    </TabPanel>
+    <div style={{height:'calc(100% - 8em)'}}>
+      <TabPanel value={tabIndex} index={0} fullHeight>
+      </TabPanel>
+      <TabPanel value={tabIndex} index={1} fullHeight>
+        <Card sx={{mx:2, my:1}} elevation={0} variant="outlined">
+          <CardContent>
+            <Typography variant="h4">Data</Typography>
+            <UploadUsers/>
+            <hr/>
+            <CalendarChart data={caldata} options={{width:400}} onClick={console.log} sx={{background:'white'}}/>
+          </CardContent>
+        </Card>
+      </TabPanel>
+      <TabPanel value={tabIndex} index={2} fullHeight>
+        <UserAdminPanel/>
+      </TabPanel>
+    </div>
   </Page>
   );
 }

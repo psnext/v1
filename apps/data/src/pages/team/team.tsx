@@ -64,6 +64,10 @@ function filterCustomData(rows: Array<Row>, id:any, filterValue:any){
   })
 }
 
+function aggregateCustomDataCell(values:any, row:Row, column:any){
+  return JSON.stringify(values);
+}
+
 export function TeamPage (props:RouteComponentProps) {
   const [tabIndex, setTabIndex] = useState(1);
   const [customData, setCustomData] = useState<Map<string, EventDataMap>>();
@@ -151,6 +155,7 @@ export function TeamPage (props:RouteComponentProps) {
       {
         Header: 'Team',
         accessor: 'details.team',
+        Filter: SelectColumnFilter,
         filter: 'text',
       },
       {
@@ -161,6 +166,7 @@ export function TeamPage (props:RouteComponentProps) {
       {
         Header: 'Gender',
         accessor: 'details.gender',
+        Filter: SelectColumnFilter,
         filter: 'text',
       }
     ];
@@ -176,7 +182,7 @@ export function TeamPage (props:RouteComponentProps) {
       if (usr) {
         usr=usr[0];
       } else {
-        console.log('Unable to find user '+email);
+        console.log(`Unable to find user ${JSON.stringify(email)}`);
         continue;
       }
       for(const [key, data] of edatamap.entries()){
@@ -188,6 +194,7 @@ export function TeamPage (props:RouteComponentProps) {
           columns.push({
             Header: el.key,
             accessor: `customdata.${el.key}`,
+            aggregateValue: aggregateCustomDataCell,
             Cell: renderCustomDataCell,
             filter: filterCustomData
           })
@@ -280,7 +287,7 @@ export function TeamPage (props:RouteComponentProps) {
       </Tabs>
     </AppBar>
     {error?<Alert color="error">{error}</Alert>:null}
-    <div style={{height:'100%', display:'flex'}}>
+    <div style={{height:'calc(100% - 8em)'}}>
       <TabPanel value={tabIndex} index={0}>
         <ScoreCard user={user} users={usersData}/>
       </TabPanel>
@@ -293,25 +300,21 @@ export function TeamPage (props:RouteComponentProps) {
             </Box>
           </CardContent>
         </Card>
-        <Box sx={{position: 'relative', width:'100%', height:'100%'}}>
-          <Box sx={{px:2, position:'absolute', top:0, bottom:0, left:0, right:0}}>
-            <Card>
-              <CardContent>
-                <DataTable data={usersData} columns={columns} height={800}
-                  updateTableData={updateUsersData}
-                  rowMenu={(rows:any)=>{
+        <Card sx={{mx:2, my:1, flex:'0 1 100%'}}>
+          <CardContent sx={{height:'100%'}}>
+            <DataTable data={usersData} columns={columns} height={800}
+              updateTableData={updateUsersData}
+              rowMenu={(rows:any)=>{
 
-                    return <IconMenu options={[
-                        'Export',
-                        //rows.length<1?(row.subRows.length>0?'Bulk Update':''):,
-                      ]}
-                      onClick={(op:string)=>performRowAction(op, rows)}
-                    />
-                  }}/>
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
+                return <IconMenu options={[
+                    'Export',
+                    //rows.length<1?(row.subRows.length>0?'Bulk Update':''):,
+                  ]}
+                  onClick={(op:string)=>performRowAction(op, rows)}
+                />
+              }}/>
+          </CardContent>
+        </Card>
       </TabPanel>
     </div>
     <Backdrop
