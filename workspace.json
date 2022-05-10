@@ -347,6 +347,217 @@
       },
       "tags": []
     },
+    "psp": {
+      "projectType": "application",
+      "root": "apps/psp",
+      "sourceRoot": "apps/psp/src",
+      "tags": [],
+      "targets": {
+        "build": {
+          "executor": "@nrwl/web:webpack",
+          "outputs": ["{options.outputPath}"],
+          "defaultConfiguration": "production",
+          "options": {
+            "outputPath": "dist/apps/psp",
+            "compiler": "babel",
+            "index": "apps/psp/src/index.html",
+            "baseHref": "/",
+            "main": "apps/psp/src/main.ts",
+            "polyfills": "apps/psp/src/polyfills.ts",
+            "tsConfig": "apps/psp/tsconfig.app.json",
+            "assets": ["apps/psp/src/favicon.ico", "apps/psp/src/assets"],
+            "styles": ["apps/psp/src/styles.css"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "apps/psp/src/environments/environment.ts",
+                  "with": "apps/psp/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/web:dev-server",
+          "options": {
+            "buildTarget": "psp:build",
+            "proxyConfig": "apps/psp/proxy.conf.json"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "psp:build:production"
+            }
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/psp/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/psp"],
+          "options": {
+            "jestConfig": "apps/psp/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+
+        "build-docker": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "docker build -f apps/psp/Dockerfile -t psni_psp .",
+                "forwardAllArgs": false
+              },
+              "docker tag psni_psp gcr.io/{args.projectid}/psnextv1-{args.branch}-psp:{args.sha}",
+              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-psp:{args.sha}"
+            ],
+            "parallel": false
+          }
+        },
+        "k8s-deploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              "find ./apps/psp/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+              "find ./apps/psp/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+              "find ./apps/psp/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
+              {
+                "command": "kubectl kustomize ./apps/psp/k8s",
+                "forwardAllArgs": false
+              },
+              "kubectl apply -k ./apps/psp/k8s -n {args.branch}"
+            ],
+            "parallel": false,
+            "forwardAllArgs": false
+          }
+        }
+      }
+    },
+    "psp-e2e": {
+      "root": "apps/psp-e2e",
+      "sourceRoot": "apps/psp-e2e/src",
+      "projectType": "application",
+      "targets": {
+        "e2e": {
+          "executor": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/psp-e2e/cypress.json",
+            "devServerTarget": "psp:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "psp:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/psp-e2e/**/*.{js,ts}"]
+          }
+        }
+      },
+      "tags": [],
+      "implicitDependencies": ["psp"]
+    },
+    "pspserver": {
+      "root": "apps/pspserver",
+      "sourceRoot": "apps/pspserver/src",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/pspserver",
+            "main": "apps/pspserver/src/main.ts",
+            "tsConfig": "apps/pspserver/tsconfig.app.json",
+            "assets": ["apps/pspserver/src/assets"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/pspserver/src/environments/environment.ts",
+                  "with": "apps/pspserver/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/node:execute",
+          "options": {
+            "buildTarget": "pspserver:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/pspserver/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/pspserver"],
+          "options": {
+            "jestConfig": "apps/pspserver/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "build-docker": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "docker build -f apps/pspserver/Dockerfile -t psni_pspserver .",
+                "forwardAllArgs": false
+              },
+              "docker tag psni_pspserver gcr.io/{args.projectid}/psnextv1-{args.branch}-pspserver:{args.sha}",
+              "docker push gcr.io/{args.projectid}/psnextv1-{args.branch}-pspserver:{args.sha}"
+            ],
+            "parallel": false
+          }
+        },
+        "k8s-deploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              "find ./apps/pspserver/k8s -name kustomization.yaml -type f -exec sed -i 's/BRANCH/{args.branch}/g' {} \\;",
+              "find ./apps/pspserver/k8s -name kustomization.yaml -type f -exec sed -i 's/PROJECTID/{args.projectid}/g' {} \\;",
+              "find ./apps/pspserver/k8s -name kustomization.yaml -type f -exec sed -i 's/TAG/{args.sha}/g' {} \\;",
+              {
+                "command": "kubectl kustomize ./apps/pspserver/k8s",
+                "forwardAllArgs": false
+              },
+              "kubectl apply -k ./apps/pspserver/k8s -n {args.branch}"
+            ],
+            "parallel": false,
+            "forwardAllArgs": false
+          }
+        }
+      },
+      "tags": []
+    },
     "sharedui": {
       "root": "libs/sharedui",
       "sourceRoot": "libs/sharedui/src",

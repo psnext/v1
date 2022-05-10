@@ -1,0 +1,11 @@
+namePrefix: psni-
+nameSuffix: "-BRANCH-pspserver"
+commonLabels:
+  app: pspserver
+  ENV: BRANCH
+bases:
+- ./BRANCH
+images:
+- name: app-image
+  newName: gcr.io/PROJECTID/psnextv1-BRANCH-pspserver
+  newTag: TAG
