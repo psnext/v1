@@ -22,7 +22,7 @@ steps:
       NOW=$(date +"%Y-%m-%d %T")
       echo "{\"branch\":\"$BRANCH_NAME\", \"commit\":\"$COMMIT_SHA\", \"repo\":\"$REPO_NAME\", \"buildtime\":\"$$NOW\", \"buildid\":\"$BUILD_ID\"}" > _buildinfo.js
       cat _buildinfo.js
-      npm i --quiet --no-progress
+      npm i --quiet --no-progress --legacy-peer-deps
 # step 1  build
 - id: build
   waitFor:
