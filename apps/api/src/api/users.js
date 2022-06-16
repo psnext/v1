@@ -268,7 +268,7 @@ userApiRouter.get('/:id', requireSession, async (req, res)=>{
 
 
 userApiRouter.post('/:id/details', requirePermission(['Users.Write.All']), async(req, res)=>{
-    
+
 })
 
 userApiRouter.get('/:id/photo', requireSession, async (req, res)=>{
@@ -528,7 +528,7 @@ userApiRouter.post('/requestaccess', async (req, res)=>{
     //send mail
     const msg = {
       to: email,
-      from: `"psnext.info" <${process.env.MAIL_FROM}>`,
+      from: `${process.env.MAIL_FROM}`,
       subject: 'Access code for psnext.info',
       text: `Your PS Next access code is ${code}`,
       html: `Your <strong>PS Next</strong> access code is <h3>${code}</h3>`,
@@ -538,10 +538,23 @@ userApiRouter.post('/requestaccess', async (req, res)=>{
       return res.status(200).json({code});
     }
 
-    let info = await req.app.mailer.sendMail(msg);
-    log.debug("Message sent: %s", info.messageId);
+    const sgMail = require('@sendgrid/mail')
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail
+      .send(msg)
+      .then((arg) => {
+        console.log('Email sent');
+        return res.sendStatus(200);
+      })
+      .catch((error) => {
+        console.error(error)
+        console.error(error.response.body.errors);
+        return res.sendStatus(500);
+      })
+    //let info = await req.app.mailer.sendMail(msg);
+    //log.debug("Message sent: %s", info.messageId);
 
-    return res.sendStatus(200);
+
   } catch(ex) {
     log.error('Unalbe to request access for user: '+email);
     log.error(ex);
